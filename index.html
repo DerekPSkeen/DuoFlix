@@ -7,12 +7,11 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-  body { font-family: 'Inter', system-ui; }
-  .card { 
-    transition: transform 0.08s linear; 
-    box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5); 
-    touch-action: none; 
-  }
+  body { font-family: 'Inter', system-ui; overflow:hidden; }
+  .card { transition: transform 0.08s linear; box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5); touch-action: none; }
+  .overlay { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:80px; font-weight:900; opacity:0; transition:opacity 0.2s; pointer-events:none; }
+  .like { color:#22c55e; text-shadow:0 0 20px #22c55e; }
+  .nope { color:#ef4444; text-shadow:0 0 20px #ef4444; }
 </style>
 </head>
 <body class="bg-zinc-950 text-white min-h-screen">
@@ -33,14 +32,20 @@
   </div>
 
   <!-- SWIPE SCREEN -->
-  <div id="screen0" class="p-6 flex flex-col items-center">
-    <div id="card" class="card bg-zinc-800 rounded-3xl overflow-hidden w-full max-w-[340px] cursor-grab active:cursor-grabbing"></div>
+  <div id="screen0" class="p-6 flex flex-col items-center relative">
+    <div id="card-container" class="relative w-full max-w-[340px] h-[520px]">
+      <div id="card" class="card bg-zinc-800 rounded-3xl overflow-hidden w-full h-full cursor-grab active:cursor-grabbing absolute"></div>
+      <div id="like-overlay" class="overlay like">LIKE</div>
+      <div id="nope-overlay" class="overlay nope">NOPE</div>
+    </div>
 
     <!-- Backup buttons -->
-    <div class="flex justify-center gap-12 mt-12">
+    <div class="flex justify-center gap-12 mt-8">
       <button onclick="swipeLeft()" class="w-20 h-20 bg-zinc-800 rounded-3xl text-6xl flex items-center justify-center active:scale-90">❌</button>
       <button onclick="swipeRight()" class="w-20 h-20 bg-red-600 rounded-3xl text-6xl flex items-center justify-center active:scale-90">❤️</button>
     </div>
+
+    <button onclick="undoSwipe()" class="mt-6 text-sm text-zinc-400 underline">Undo last swipe</button>
   </div>
 
   <!-- MATCHES SCREEN -->
@@ -65,6 +70,8 @@ const TMDB_READ_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlMjA0ZGQzYTU5ZWY2MzY1Mz
 
 let shows = [];
 let current = 0;
+let lastSwiped = null;
+let matches = JSON.parse(localStorage.getItem('duoflixMatches')) || [];
 
 async function loadRealShows() {
   try {
@@ -84,13 +91,13 @@ async function loadRealShows() {
     }));
     current = 0;
     showCard();
-  } catch(e) { console.log("Fallback"); }
+  } catch(e) { console.log("Fallback used"); }
 }
 
 function showCard() {
   const show = shows[current] || {title:"Dune: Part Two",img:"https://picsum.photos/id/1015/600/800",info:"2024 • Sci-Fi • 8.7"};
   document.getElementById('card').innerHTML = `
-    <img src="${show.img}" style="width:100%; height:auto; max-height:55vh; object-fit:cover;">
+    <img src="${show.img}" style="width:100%;height:auto;max-height:55vh;object-fit:cover;">
     <div style="padding:24px;text-align:center;">
       <h2 style="font-size:28px;margin:0 0 8px 0;">${show.title}</h2>
       <p style="color:#a1a1aa;font-size:18px;">${show.info || show.year + " • " + show.genre + " • " + show.rating}</p>
@@ -98,11 +105,13 @@ function showCard() {
   `;
 }
 
-// ==================== DRAG SWIPE (optimized for mobile + trackpad) ====================
+// ==================== PREMIUM DRAG SWIPE ====================
 const card = document.getElementById('card');
 let isDragging = false;
 let startX = 0;
 let currentTranslate = 0;
+const likeOverlay = document.getElementById('like-overlay');
+const nopeOverlay = document.getElementById('nope-overlay');
 
 card.addEventListener('pointerdown', e => {
   isDragging = true;
@@ -113,36 +122,92 @@ card.addEventListener('pointerdown', e => {
 document.addEventListener('pointermove', e => {
   if (!isDragging) return;
   currentTranslate = e.clientX - startX;
-  card.style.transform = `translateX(${currentTranslate}px) rotate(${currentTranslate / 20}deg) scale(0.95)`;
+  const progress = Math.min(Math.abs(currentTranslate) / 150, 1);
+
+  card.style.transform = `translateX(${currentTranslate}px) rotate(${currentTranslate / 20}deg) scale(${1 - progress * 0.08})`;
+
+  if (currentTranslate > 0) {
+    likeOverlay.style.opacity = progress;
+    nopeOverlay.style.opacity = 0;
+  } else {
+    nopeOverlay.style.opacity = progress;
+    likeOverlay.style.opacity = 0;
+  }
+
+  // Auto-commit on distance
+  if (Math.abs(currentTranslate) > 160) {
+    isDragging = false;
+    if (currentTranslate > 0) {
+      card.style.transition = 'transform 0.3s';
+      card.style.transform = `translateX(600px) rotate(40deg) scale(0.7)`;
+      setTimeout(() => nextCard(true), 280);
+    } else {
+      card.style.transition = 'transform 0.3s';
+      card.style.transform = `translateX(-600px) rotate(-40deg) scale(0.7)`;
+      setTimeout(() => nextCard(false), 280);
+    }
+  }
 });
 
 document.addEventListener('pointerup', e => {
   if (!isDragging) return;
   isDragging = false;
-  card.style.transition = 'transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1)';
+  card.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)';
 
-  const threshold = 90; // lower for easier swipe on phone/trackpad
-
-  if (currentTranslate > threshold) {
-    card.style.transform = `translateX(500px) rotate(30deg) scale(0.8)`;
-    setTimeout(nextCard, 300);
-  } else if (currentTranslate < -threshold) {
-    card.style.transform = `translateX(-500px) rotate(-30deg) scale(0.8)`;
-    setTimeout(nextCard, 300);
+  if (Math.abs(currentTranslate) > 120) {
+    if (currentTranslate > 0) {
+      card.style.transform = `translateX(600px) rotate(40deg) scale(0.7)`;
+      setTimeout(() => nextCard(true), 280);
+    } else {
+      card.style.transform = `translateX(-600px) rotate(-40deg) scale(0.7)`;
+      setTimeout(() => nextCard(false), 280);
+    }
   } else {
     card.style.transform = 'translateX(0) rotate(0deg) scale(1)';
+    likeOverlay.style.opacity = 0;
+    nopeOverlay.style.opacity = 0;
   }
 });
 
-function nextCard() {
+function nextCard(isLike) {
+  lastSwiped = shows[current];
+  if (isLike) {
+    yourLikes.push(shows[current]);
+    if (partnerLikes.some(s => s.id === shows[current].id)) createMatch(shows[current]);
+  }
   current = (current + 1) % shows.length;
   showCard();
   card.style.transition = 'none';
   card.style.transform = 'translateX(0) rotate(0deg) scale(1)';
+  likeOverlay.style.opacity = 0;
+  nopeOverlay.style.opacity = 0;
 }
 
-function swipeLeft() { nextCard(); }
-function swipeRight() { nextCard(); }
+function swipeLeft() { nextCard(false); }
+function swipeRight() { nextCard(true); }
+
+function undoSwipe() {
+  if (!lastSwiped) return alert("Nothing to undo yet");
+  current = shows.findIndex(s => s.id === lastSwiped.id);
+  if (current === -1) current = 0;
+  showCard();
+  lastSwiped = null;
+  alert("Undid last swipe");
+}
+
+function createMatch(show) {
+  if (matches.some(m => m.id === show.id)) return;
+  matches.push(show);
+  localStorage.setItem('duoflixMatches', JSON.stringify(matches));
+  document.getElementById('match-modal').classList.remove('hidden');
+  document.getElementById('modal-poster').innerHTML = `<img src="${show.img}" class="w-full h-full object-cover">`;
+  document.getElementById('modal-title').textContent = show.title;
+  renderMatches();
+}
+
+function closeModal() {
+  document.getElementById('match-modal').classList.add('hidden');
+}
 
 function showTab(n) {
   document.getElementById('screen0').style.display = n === 0 ? 'block' : 'none';
@@ -152,6 +217,15 @@ function showTab(n) {
 
 function upgradeToPro() {
   alert("DuoFlix Pro – $4.99/month per couple\nUnlimited swipes for both of you ❤️");
+}
+
+let yourLikes = [];
+let partnerLikes = [];
+function simulatePartner() {
+  const show = shows[current];
+  partnerLikes.push(show);
+  if (yourLikes.some(s => s.id === show.id)) createMatch(show);
+  else alert(`Your partner liked "${show.title}"! Swipe right to match ❤️`);
 }
 
 loadRealShows();
