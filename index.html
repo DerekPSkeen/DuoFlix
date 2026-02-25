@@ -88,33 +88,33 @@ async function loadRealShows() {
       img: `https://image.tmdb.org/t/p/w500${item.poster_path}`,
       desc: (item.overview || "Great show!").slice(0,80) + "...",
       providers: ["Netflix","Max","Hulu"],
-      actors: getActorsForShow(item.title || item.name)
+      actors: getActors(item.title || item.name)
     }));
     current = 0;
     showCard();
-  } catch(e) { console.log("Fallback used"); }
+  } catch(e) { console.log("Fallback"); }
 }
 
-function getActorsForShow(title) {
-  const actorMap = {
+function getActors(title) {
+  const map = {
     "Dune": ["Timothée Chalamet", "Zendaya", "Rebecca Ferguson"],
     "Oppenheimer": ["Cillian Murphy", "Emily Blunt", "Robert Downey Jr."],
     "House of the Dragon": ["Matt Smith", "Emma D'Arcy", "Olivia Cooke"],
     "Barbie": ["Margot Robbie", "Ryan Gosling", "America Ferrera"],
     "Furiosa": ["Anya Taylor-Joy", "Chris Hemsworth"]
   };
-  for (let key in actorMap) if (title.includes(key)) return actorMap[key];
+  for (let key in map) if (title.includes(key)) return map[key];
   return ["Top Cast", "Loading..."];
 }
 
 function showCard() {
   const show = shows[current] || {title:"Dune: Part Two",img:"https://picsum.photos/id/1015/600/800",info:"2024 • Sci-Fi • 8.7", actors:["Timothée Chalamet", "Zendaya"]};
   document.getElementById('card').innerHTML = `
-    <img src="${show.img}" style="width:100%;height:auto;max-height:380px;object-fit:cover;">
-    <div style="padding:24px;text-align:center;background:#27272a;">
-      <h2 style="font-size:28px;margin:0 0 8px 0;">${show.title}</h2>
-      <p style="color:#a1a1aa;font-size:18px;">${show.year} • ${show.genre} • ${show.rating}</p>
-      <p style="margin-top:12px;font-size:15px;color:#d1d5db;">${show.desc}</p>
+    <img src="${show.img}" style="width:100%;height:auto;max-height:280px;object-fit:cover;">
+    <div style="padding:20px;text-align:center;background:#27272a;">
+      <h2 style="font-size:26px;margin:0 0 6px 0;">${show.title}</h2>
+      <p style="color:#a1a1aa;font-size:17px;">${show.year} • ${show.genre} • ${show.rating}</p>
+      <p style="margin-top:12px;font-size:15px;color:#d1d5db;line-height:1.4;">${show.desc}</p>
       <div style="margin-top:16px;font-size:15px;color:#a1a1aa;">Starring: ${show.actors.join(", ")}</div>
     </div>
   `;
