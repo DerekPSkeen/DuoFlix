@@ -5,6 +5,7 @@
 <title>DuoFlix • Watch Together</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.tailwindcss.com"></script>
+<meta name="theme-color" content="#18181b">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
   body { font-family: 'Inter', system-ui; }
@@ -53,48 +54,67 @@
 </div>
 
 <script>
-const movies = [
-  {title:"Dune: Part Two",img:"https://picsum.photos/id/1015/600/800",info:"2024 • Sci-Fi • 8.7"},
-  {title:"Oppenheimer",img:"https://picsum.photos/id/201/600/800",info:"2023 • Drama • 8.3"},
-  {title:"House of the Dragon",img:"https://picsum.photos/id/133/600/800",info:"2024 • Fantasy • 8.5"},
-  {title:"Barbie",img:"https://picsum.photos/id/1337/600/800",info:"2023 • Comedy • 6.9"},
-  {title:"Furiosa",img:"https://picsum.photos/id/102/600/800",info:"2024 • Action • 7.7"}
-];
+// ====================== YOUR TMDB TOKEN ======================
+const TMDB_READ_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlMjA0ZGQzYTU5ZWY2MzY1MzRlOTBlZGE2ZDU4NWJlNCIsIm5iZiI6MTc3MTc3MjIxMy43NTEwMDAyLCJzdWIiOiI2OTliMTkzNWJkN2E3NTBhNDk4MGVkZTciLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.AkgenA40NIZJ4jfNEGVPnxAQxtE000b7fY3g3EgF5gY';
 
+let shows = [];
 let current = 0;
-let matches = [];
+let matches = JSON.parse(localStorage.getItem('duoflixMatches')) || [];
+
+async function loadRealShows() {
+  try {
+    const res = await fetch('https://api.themoviedb.org/3/trending/all/week?language=en-US', {
+      headers: { 'Authorization': `Bearer ${TMDB_READ_TOKEN}` }
+    });
+    const data = await res.json();
+    shows = data.results.map(item => ({
+      id: item.id,
+      title: item.title || item.name,
+      year: (item.release_date || item.first_air_date || '').slice(0,4),
+      rating: item.vote_average.toFixed(1),
+      genre: "Trending",
+      img: `https://image.tmdb.org/t/p/w500${item.poster_path}`,
+      desc: (item.overview || "Great show!").slice(0,80) + "...",
+      providers: ["Netflix","Max","Hulu"]
+    }));
+    current = 0;
+    showCard();
+  } catch(e) { console.log("Fallback"); }
+}
 
 function showCard() {
+  const show = shows[current] || {title:"Dune: Part Two",img:"https://picsum.photos/id/1015/600/800",info:"2024 • Sci-Fi • 8.7"};
   document.getElementById('card').innerHTML = `
-    <img src="${movies[current].img}" class="w-full">
-    <div class="p-6 text-center">
-      <h2 class="text-3xl font-bold">${movies[current].title}</h2>
-      <p class="text-zinc-400">${movies[current].info}</p>
+    <img src="${show.img}" style="width:100%;height:460px;object-fit:cover;">
+    <div style="padding:24px;text-align:center;">
+      <h2 style="font-size:28px;margin:0 0 8px 0;">${show.title}</h2>
+      <p style="color:#a1a1aa;font-size:18px;">${show.info || show.year + " • " + show.genre + " • " + show.rating}</p>
     </div>
   `;
 }
 
 function swipeLeft() {
-  current = (current + 1) % movies.length;
+  current = (current + 1) % shows.length;
   showCard();
 }
 
 function swipeRight() {
-  current = (current + 1) % movies.length;
+  current = (current + 1) % shows.length;
   showCard();
-  alert("❤️ Liked!");
+  alert("❤️ Liked! (In full app this matches with your partner)");
 }
 
 function showTab(n) {
-  document.getElementById('screen0').classList.toggle('hidden', n !== 0);
-  document.getElementById('screen1').classList.toggle('hidden', n !== 1);
-  document.getElementById('screen2').classList.toggle('hidden', n !== 2);
+  document.getElementById('screen0').style.display = n === 0 ? 'block' : 'none';
+  document.getElementById('screen1').style.display = n === 1 ? 'block' : 'none';
+  document.getElementById('screen2').style.display = n === 2 ? 'block' : 'none';
 }
 
 function upgradeToPro() {
   alert("DuoFlix Pro – $4.99/month per couple\nUnlimited swipes for both of you ❤️");
 }
 
+loadRealShows();
 showCard();
 </script>
 </body>
