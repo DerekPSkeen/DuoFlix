@@ -8,7 +8,7 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
   body { font-family: 'Inter', system-ui; }
-  .card { transition: transform 0.1s linear; box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.4); }
+  .card { transition: transform 0.1s linear; box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.4); user-select: none; }
 </style>
 </head>
 <body class="bg-zinc-950 text-white min-h-screen">
@@ -30,8 +30,12 @@
 
   <!-- SWIPE SCREEN -->
   <div id="screen0" class="p-6 flex flex-col items-center">
-    <div id="card" class="card bg-zinc-800 rounded-3xl overflow-hidden w-full max-w-[340px] cursor-grab active:cursor-grabbing">
-      <!-- card content -->
+    <div id="card" class="card bg-zinc-800 rounded-3xl overflow-hidden w-full max-w-[340px] cursor-grab active:cursor-grabbing"></div>
+
+    <!-- Backup buttons -->
+    <div class="flex justify-center gap-12 mt-8">
+      <button onclick="swipeLeft()" class="w-20 h-20 bg-zinc-800 rounded-3xl text-6xl flex items-center justify-center">❌</button>
+      <button onclick="swipeRight()" class="w-20 h-20 bg-red-600 rounded-3xl text-6xl flex items-center justify-center">❤️</button>
     </div>
   </div>
 
@@ -57,7 +61,7 @@ const TMDB_READ_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlMjA0ZGQzYTU5ZWY2MzY1Mz
 
 let shows = [];
 let current = 0;
-let matches = [];
+let matches = JSON.parse(localStorage.getItem('duoflixMatches')) || [];
 
 async function loadRealShows() {
   try {
@@ -77,7 +81,7 @@ async function loadRealShows() {
     }));
     current = 0;
     showCard();
-  } catch(e) { console.log("Fallback"); }
+  } catch(e) { console.log("Fallback used"); }
 }
 
 function showCard() {
@@ -91,70 +95,49 @@ function showCard() {
   `;
 }
 
-// DRAG SWIPE LOGIC
+// ==================== DRAG SWIPE LOGIC ====================
 let isDragging = false;
 let startX = 0;
 let currentX = 0;
+const cardElement = document.getElementById('card');
 
-const card = document.getElementById('card');
-
-card.addEventListener('pointerdown', (e) => {
+cardElement.addEventListener('pointerdown', (e) => {
   isDragging = true;
   startX = e.clientX;
-  card.style.transition = 'none';
+  cardElement.style.transition = 'none';
 });
 
 document.addEventListener('pointermove', (e) => {
   if (!isDragging) return;
   currentX = e.clientX - startX;
-  card.style.transform = `translateX(${currentX}px) rotate(${currentX / 15}deg)`;
+  cardElement.style.transform = `translateX(${currentX}px) rotate(${currentX / 15}deg)`;
 });
 
 document.addEventListener('pointerup', (e) => {
   if (!isDragging) return;
   isDragging = false;
-  card.style.transition = 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+  cardElement.style.transition = 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
 
   if (currentX > 150) {
-    card.style.transform = 'translateX(500px) rotate(30deg)';
-    setTimeout(() => {
-      current = (current + 1) % shows.length;
-      showCard();
-      card.style.transform = 'translateX(0) rotate(0deg)';
-    }, 300);
+    cardElement.style.transform = `translateX(500px) rotate(30deg)`;
+    setTimeout(() => { nextCard(); }, 300);
   } else if (currentX < -150) {
-    card.style.transform = 'translateX(-500px) rotate(-30deg)';
-    setTimeout(() => {
-      current = (current + 1) % shows.length;
-      showCard();
-      card.style.transform = 'translateX(0) rotate(0deg)';
-    }, 300);
+    cardElement.style.transform = `translateX(-500px) rotate(-30deg)`;
+    setTimeout(() => { nextCard(); }, 300);
   } else {
-    card.style.transform = 'translateX(0) rotate(0deg)';
+    cardElement.style.transform = 'translateX(0) rotate(0deg)';
   }
 });
 
-function swipeLeft() {
-  card.style.transition = 'transform 0.4s';
-  card.style.transform = 'translateX(-500px) rotate(-30deg)';
-  setTimeout(() => {
-    current = (current + 1) % shows.length;
-    showCard();
-    card.style.transition = 'none';
-    card.style.transform = 'translateX(0) rotate(0deg)';
-  }, 400);
+function nextCard() {
+  current = (current + 1) % shows.length;
+  showCard();
+  cardElement.style.transition = 'none';
+  cardElement.style.transform = 'translateX(0) rotate(0deg)';
 }
 
-function swipeRight() {
-  card.style.transition = 'transform 0.4s';
-  card.style.transform = 'translateX(500px) rotate(30deg)';
-  setTimeout(() => {
-    current = (current + 1) % shows.length;
-    showCard();
-    card.style.transition = 'none';
-    card.style.transform = 'translateX(0) rotate(0deg)';
-  }, 400);
-}
+function swipeLeft() { nextCard(); }
+function swipeRight() { nextCard(); }
 
 function showTab(n) {
   document.getElementById('screen0').style.display = n === 0 ? 'block' : 'none';
