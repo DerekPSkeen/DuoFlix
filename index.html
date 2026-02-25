@@ -3,12 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <title>DuoFlix • Watch Together</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
   body { font-family: 'Inter', system-ui; }
-  .card { transition: transform 0.1s linear; box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.4); user-select: none; }
+  .card { 
+    transition: transform 0.08s linear; 
+    box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5); 
+    touch-action: none; 
+  }
 </style>
 </head>
 <body class="bg-zinc-950 text-white min-h-screen">
@@ -33,9 +37,9 @@
     <div id="card" class="card bg-zinc-800 rounded-3xl overflow-hidden w-full max-w-[340px] cursor-grab active:cursor-grabbing"></div>
 
     <!-- Backup buttons -->
-    <div class="flex justify-center gap-12 mt-8">
-      <button onclick="swipeLeft()" class="w-20 h-20 bg-zinc-800 rounded-3xl text-6xl flex items-center justify-center">❌</button>
-      <button onclick="swipeRight()" class="w-20 h-20 bg-red-600 rounded-3xl text-6xl flex items-center justify-center">❤️</button>
+    <div class="flex justify-center gap-12 mt-12">
+      <button onclick="swipeLeft()" class="w-20 h-20 bg-zinc-800 rounded-3xl text-6xl flex items-center justify-center active:scale-90">❌</button>
+      <button onclick="swipeRight()" class="w-20 h-20 bg-red-600 rounded-3xl text-6xl flex items-center justify-center active:scale-90">❤️</button>
     </div>
   </div>
 
@@ -61,7 +65,6 @@ const TMDB_READ_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlMjA0ZGQzYTU5ZWY2MzY1Mz
 
 let shows = [];
 let current = 0;
-let matches = JSON.parse(localStorage.getItem('duoflixMatches')) || [];
 
 async function loadRealShows() {
   try {
@@ -81,13 +84,13 @@ async function loadRealShows() {
     }));
     current = 0;
     showCard();
-  } catch(e) { console.log("Fallback used"); }
+  } catch(e) { console.log("Fallback"); }
 }
 
 function showCard() {
   const show = shows[current] || {title:"Dune: Part Two",img:"https://picsum.photos/id/1015/600/800",info:"2024 • Sci-Fi • 8.7"};
   document.getElementById('card').innerHTML = `
-    <img src="${show.img}" style="width:100%;height:460px;object-fit:cover;">
+    <img src="${show.img}" style="width:100%; height:auto; max-height:55vh; object-fit:cover;">
     <div style="padding:24px;text-align:center;">
       <h2 style="font-size:28px;margin:0 0 8px 0;">${show.title}</h2>
       <p style="color:#a1a1aa;font-size:18px;">${show.info || show.year + " • " + show.genre + " • " + show.rating}</p>
@@ -95,45 +98,47 @@ function showCard() {
   `;
 }
 
-// ==================== DRAG SWIPE LOGIC ====================
+// ==================== DRAG SWIPE (optimized for mobile + trackpad) ====================
+const card = document.getElementById('card');
 let isDragging = false;
 let startX = 0;
-let currentX = 0;
-const cardElement = document.getElementById('card');
+let currentTranslate = 0;
 
-cardElement.addEventListener('pointerdown', (e) => {
+card.addEventListener('pointerdown', e => {
   isDragging = true;
   startX = e.clientX;
-  cardElement.style.transition = 'none';
+  card.style.transition = 'none';
 });
 
-document.addEventListener('pointermove', (e) => {
+document.addEventListener('pointermove', e => {
   if (!isDragging) return;
-  currentX = e.clientX - startX;
-  cardElement.style.transform = `translateX(${currentX}px) rotate(${currentX / 15}deg)`;
+  currentTranslate = e.clientX - startX;
+  card.style.transform = `translateX(${currentTranslate}px) rotate(${currentTranslate / 20}deg) scale(0.95)`;
 });
 
-document.addEventListener('pointerup', (e) => {
+document.addEventListener('pointerup', e => {
   if (!isDragging) return;
   isDragging = false;
-  cardElement.style.transition = 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+  card.style.transition = 'transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1)';
 
-  if (currentX > 150) {
-    cardElement.style.transform = `translateX(500px) rotate(30deg)`;
-    setTimeout(() => { nextCard(); }, 300);
-  } else if (currentX < -150) {
-    cardElement.style.transform = `translateX(-500px) rotate(-30deg)`;
-    setTimeout(() => { nextCard(); }, 300);
+  const threshold = 90; // lower for easier swipe on phone/trackpad
+
+  if (currentTranslate > threshold) {
+    card.style.transform = `translateX(500px) rotate(30deg) scale(0.8)`;
+    setTimeout(nextCard, 300);
+  } else if (currentTranslate < -threshold) {
+    card.style.transform = `translateX(-500px) rotate(-30deg) scale(0.8)`;
+    setTimeout(nextCard, 300);
   } else {
-    cardElement.style.transform = 'translateX(0) rotate(0deg)';
+    card.style.transform = 'translateX(0) rotate(0deg) scale(1)';
   }
 });
 
 function nextCard() {
   current = (current + 1) % shows.length;
   showCard();
-  cardElement.style.transition = 'none';
-  cardElement.style.transform = 'translateX(0) rotate(0deg)';
+  card.style.transition = 'none';
+  card.style.transform = 'translateX(0) rotate(0deg) scale(1)';
 }
 
 function swipeLeft() { nextCard(); }
