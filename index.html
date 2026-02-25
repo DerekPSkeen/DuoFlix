@@ -79,7 +79,9 @@ async function loadRealShows() {
     }));
     current = 0;
     showCard();
-  } catch(e) { console.log("Fallback"); }
+  } catch(e) {
+    console.log("Fallback used");
+  }
 }
 
 function showCard() {
@@ -101,7 +103,7 @@ function swipeLeft() {
 function swipeRight() {
   current = (current + 1) % shows.length;
   showCard();
-  alert("❤️ Liked! (In full app this matches with your partner)");
+  alert("❤️ Liked!");
 }
 
 function showTab(n) {
