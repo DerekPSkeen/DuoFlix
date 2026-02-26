@@ -31,16 +31,16 @@
     <button onclick="showTab(2)" id="tab2" class="flex-1 py-4 font-semibold text-zinc-400">PRO</button>
   </div>
 
-  <!-- SWIPE SCREEN - Fully Responsive -->
-  <div id="screen0" class="flex-1 p-6 flex flex-col items-center justify-center relative">
-    <div id="card-container" class="relative w-full max-w-[340px]">
-      <div id="card" class="card bg-zinc-800 rounded-3xl overflow-hidden w-full cursor-grab active:cursor-grabbing"></div>
+  <!-- SWIPE SCREEN - Responsive Full-Screen Fit -->
+  <div id="screen0" class="flex-1 flex flex-col p-6">
+    <div id="card-container" class="flex-1 flex items-center justify-center relative">
+      <div id="card" class="card bg-zinc-800 rounded-3xl overflow-hidden w-full max-w-[340px] cursor-grab active:cursor-grabbing"></div>
       <div id="like-overlay" class="overlay like">LIKE</div>
       <div id="nope-overlay" class="overlay nope">NOPE</div>
     </div>
 
-    <!-- Backup buttons - fixed at bottom with safe spacing -->
-    <div class="flex justify-center gap-12 mt-auto mb-8">
+    <!-- Buttons - Fixed at bottom with safe space -->
+    <div class="flex justify-center gap-12 mt-8">
       <button onclick="swipeLeft()" class="w-20 h-20 bg-zinc-800 rounded-3xl text-6xl flex items-center justify-center active:scale-90">❌</button>
       <button onclick="swipeRight()" class="w-20 h-20 bg-red-600 rounded-3xl text-6xl flex items-center justify-center active:scale-90">❤️</button>
     </div>
