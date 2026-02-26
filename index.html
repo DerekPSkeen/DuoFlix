@@ -31,7 +31,7 @@
     <button onclick="showTab(2)" id="tab2" class="flex-1 py-4 font-semibold text-zinc-400">PRO</button>
   </div>
 
-  <!-- SWIPE SCREEN - Perfect Fit for All Devices -->
+  <!-- SWIPE SCREEN - Perfect Fit -->
   <div id="screen0" class="flex-1 flex flex-col p-6">
     <div id="card-container" class="flex-1 flex items-center justify-center relative">
       <div id="card" class="card bg-zinc-800 rounded-3xl overflow-hidden w-full max-w-[340px] cursor-grab active:cursor-grabbing"></div>
@@ -40,7 +40,7 @@
     </div>
 
     <!-- Buttons - Always visible at bottom -->
-    <div class="flex justify-center gap-12 mt-8">
+    <div class="flex justify-center gap-12 mt-auto mb-8">
       <button onclick="swipeLeft()" class="w-20 h-20 bg-zinc-800 rounded-3xl text-6xl flex items-center justify-center active:scale-90">❌</button>
       <button onclick="swipeRight()" class="w-20 h-20 bg-red-600 rounded-3xl text-6xl flex items-center justify-center active:scale-90">❤️</button>
     </div>
@@ -108,7 +108,7 @@ function getActors(title) {
 function showCard() {
   const show = shows[current] || {title:"Dune: Part Two",img:"https://picsum.photos/id/1015/600/800",info:"2024 • Sci-Fi • 8.7", actors:["Timothée Chalamet", "Zendaya"]};
   document.getElementById('card').innerHTML = `
-    <img src="${show.img}" style="width:100%;height:auto;max-height:240px;object-fit:cover;">
+    <img src="${show.img}" style="width:100%;height:auto;max-height:220px;object-fit:cover;">
     <div style="padding:20px;text-align:center;background:#27272a;">
       <h2 style="font-size:22px;margin:0 0 6px 0;">${show.title}</h2>
       <p style="color:#a1a1aa;font-size:16px;">${show.year} • ${show.genre} • ${show.rating}</p>
