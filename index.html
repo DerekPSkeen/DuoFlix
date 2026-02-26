@@ -40,7 +40,7 @@
     </div>
 
     <!-- Backup buttons -->
-    <div class="flex justify-center gap-12 mt-8">
+    <div class="flex justify-center gap-12 mt-12">
       <button onclick="swipeLeft()" class="w-20 h-20 bg-zinc-800 rounded-3xl text-6xl flex items-center justify-center active:scale-90">❌</button>
       <button onclick="swipeRight()" class="w-20 h-20 bg-red-600 rounded-3xl text-6xl flex items-center justify-center active:scale-90">❤️</button>
     </div>
@@ -104,7 +104,7 @@ function getActors(title) {
     "Furiosa": ["Anya Taylor-Joy", "Chris Hemsworth"]
   };
   for (let key in map) if (title.includes(key)) return map[key];
-  return ["Top Cast", "Loading..."];
+  return ["Various Cast"];
 }
 
 function showCard() {
@@ -114,8 +114,8 @@ function showCard() {
     <div style="padding:20px;text-align:center;background:#27272a;">
       <h2 style="font-size:26px;margin:0 0 6px 0;">${show.title}</h2>
       <p style="color:#a1a1aa;font-size:17px;">${show.year} • ${show.genre} • ${show.rating}</p>
-      <p style="margin-top:12px;font-size:15px;color:#d1d5db;line-height:1.4;">${show.desc}</p>
-      <div style="margin-top:16px;font-size:15px;color:#a1a1aa;">Starring: ${show.actors.join(", ")}</div>
+      <p style="margin-top:10px;font-size:15px;color:#d1d5db;line-height:1.4;">${show.desc}</p>
+      <div style="margin-top:14px;font-size:15px;color:#a1a1aa;">Starring: ${show.actors.join(", ")}</div>
     </div>
   `;
 }
@@ -240,4 +240,3 @@ showCard();
 </script>
 </body>
 </html>
-
