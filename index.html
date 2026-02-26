@@ -31,7 +31,7 @@
     <button onclick="showTab(2)" id="tab2" class="flex-1 py-4 font-semibold text-zinc-400">PRO</button>
   </div>
 
-  <!-- SWIPE SCREEN - Perfect Fit on Your Devices -->
+  <!-- SWIPE SCREEN - Simple Poster + Title Strategy -->
   <div id="screen0" class="flex-1 flex flex-col p-6">
     <div id="card-container" class="flex-1 flex items-center justify-center relative">
       <div id="card" class="card bg-zinc-800 rounded-3xl overflow-hidden w-full max-w-[340px] cursor-grab active:cursor-grabbing"></div>
@@ -39,7 +39,10 @@
       <div id="nope-overlay" class="overlay nope">NOPE</div>
     </div>
 
-    <!-- Buttons - Always visible at bottom with extra safe space -->
+    <!-- Title + Date + Details Button -->
+    <div id="card-info" class="mt-4 text-center"></div>
+
+    <!-- Buttons - Always visible at bottom -->
     <div class="flex justify-center gap-12 mt-auto mb-8">
       <button onclick="swipeLeft()" class="w-20 h-20 bg-zinc-800 rounded-3xl text-6xl flex items-center justify-center active:scale-90">❌</button>
       <button onclick="swipeRight()" class="w-20 h-20 bg-red-600 rounded-3xl text-6xl flex items-center justify-center active:scale-90">❤️</button>
@@ -60,6 +63,19 @@
     <button onclick="upgradeToPro()" class="mt-12 bg-gradient-to-r from-red-500 to-pink-500 w-full py-5 rounded-3xl text-xl font-bold">Upgrade Now</button>
   </div>
 
+</div>
+
+<!-- DETAILS MODAL -->
+<div id="details-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-50">
+  <div class="bg-zinc-900 rounded-3xl p-8 max-w-xs w-full text-center max-h-[80vh] overflow-auto">
+    <button onclick="closeDetails()" class="float-right text-2xl">✕</button>
+    <div id="modal-poster" class="mx-auto w-52 rounded-2xl overflow-hidden shadow-2xl mb-6"></div>
+    <p id="modal-title" class="text-2xl font-bold"></p>
+    <p id="modal-info" class="text-zinc-400"></p>
+    <p id="modal-desc" class="text-sm mt-6 text-left"></p>
+    <p id="modal-actors" class="text-sm mt-4 text-left text-zinc-300"></p>
+    <p id="modal-providers" class="text-sm mt-4 text-left text-emerald-400"></p>
+  </div>
 </div>
 
 <script>
@@ -84,7 +100,7 @@ async function loadRealShows() {
       rating: item.vote_average.toFixed(1),
       genre: "Trending",
       img: `https://image.tmdb.org/t/p/w500${item.poster_path}`,
-      desc: (item.overview || "Great show!").slice(0,80) + "...",
+      desc: (item.overview || "Great show!").slice(0,120) + "...",
       providers: ["Netflix","Max","Hulu"],
       actors: getActors(item.title || item.name)
     }));
@@ -108,14 +124,28 @@ function getActors(title) {
 function showCard() {
   const show = shows[current] || {title:"Dune: Part Two",img:"https://picsum.photos/id/1015/600/800",info:"2024 • Sci-Fi • 8.7", actors:["Timothée Chalamet", "Zendaya"]};
   document.getElementById('card').innerHTML = `
-    <img src="${show.img}" style="width:100%;height:auto;max-height:200px;object-fit:cover;">
+    <img src="${show.img}" style="width:100%;height:auto;max-height:240px;object-fit:cover;">
     <div style="padding:20px;text-align:center;background:#27272a;">
-      <h2 style="font-size:22px;margin:0 0 6px 0;">${show.title}</h2>
-      <p style="color:#a1a1aa;font-size:16px;">${show.year} • ${show.genre} • ${show.rating}</p>
-      <p style="margin-top:10px;font-size:14px;color:#d1d5db;line-height:1.4;">${show.desc}</p>
-      <div style="margin-top:12px;font-size:15px;color:#a1a1aa;">${show.actors.join(", ")}</div>
+      <h2 style="font-size:24px;margin:0 0 6px 0;">${show.title}</h2>
+      <p style="color:#a1a1aa;font-size:17px;">${show.year} • ${show.genre} • ${show.rating}</p>
+      <button onclick="showDetails()" class="mt-6 w-full bg-white text-black py-3 rounded-2xl text-sm font-semibold">Details</button>
     </div>
   `;
+}
+
+function showDetails() {
+  const show = shows[current];
+  document.getElementById('modal-poster').innerHTML = `<img src="${show.img}" class="w-full h-full object-cover">`;
+  document.getElementById('modal-title').innerHTML = `<span class="text-2xl font-bold">${show.title}</span>`;
+  document.getElementById('modal-info').innerHTML = `${show.year} • ${show.genre} • ${show.rating}`;
+  document.getElementById('modal-desc').innerHTML = show.desc;
+  document.getElementById('modal-actors').innerHTML = `Actors: ${show.actors.join(", ")}`;
+  document.getElementById('modal-providers').innerHTML = `Where to watch: ${show.providers.join(", ")}`;
+  document.getElementById('details-modal').classList.remove('hidden');
+}
+
+function closeDetails() {
+  document.getElementById('details-modal').classList.add('hidden');
 }
 
 // ==================== PREMIUM DRAG SWIPE ====================
