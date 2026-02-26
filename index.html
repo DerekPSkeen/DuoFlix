@@ -12,6 +12,7 @@
   .overlay { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:80px; font-weight:900; opacity:0; transition:opacity 0.2s; pointer-events:none; text-shadow:0 0 30px currentColor; }
   .like { color:#22c55e; }
   .nope { color:#ef4444; }
+  img { draggable: false; -webkit-user-drag: none; user-select: none; }
 </style>
 </head>
 <body class="bg-zinc-950 text-white min-h-screen">
@@ -101,7 +102,8 @@ function getActors(title) {
     "Oppenheimer": ["Cillian Murphy", "Emily Blunt", "Robert Downey Jr."],
     "House of the Dragon": ["Matt Smith", "Emma D'Arcy", "Olivia Cooke"],
     "Barbie": ["Margot Robbie", "Ryan Gosling", "America Ferrera"],
-    "Furiosa": ["Anya Taylor-Joy", "Chris Hemsworth"]
+    "Furiosa": ["Anya Taylor-Joy", "Chris Hemsworth"],
+    "Mercy": ["Chris Pratt", "Anya Taylor-Joy"]
   };
   for (let key in map) if (title.includes(key)) return map[key];
   return ["Various Cast"];
@@ -110,7 +112,7 @@ function getActors(title) {
 function showCard() {
   const show = shows[current] || {title:"Dune: Part Two",img:"https://picsum.photos/id/1015/600/800",info:"2024 • Sci-Fi • 8.7", actors:["Timothée Chalamet", "Zendaya"]};
   document.getElementById('card').innerHTML = `
-    <img src="${show.img}" style="width:100%;height:auto;max-height:280px;object-fit:cover;">
+    <img src="${show.img}" style="width:100%;height:auto;max-height:240px;object-fit:cover;">
     <div style="padding:20px;text-align:center;background:#27272a;">
       <h2 style="font-size:26px;margin:0 0 6px 0;">${show.title}</h2>
       <p style="color:#a1a1aa;font-size:17px;">${show.year} • ${show.genre} • ${show.rating}</p>
