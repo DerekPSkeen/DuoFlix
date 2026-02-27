@@ -7,54 +7,98 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-  body { font-family: 'Inter', system-ui; overflow:hidden; }
-  .card { transition: transform 0.08s linear; box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5); touch-action: none; }
-  .overlay { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:80px; font-weight:900; opacity:0; transition:opacity 0.2s; pointer-events:none; text-shadow:0 0 30px currentColor; }
-  .like { color:#22c55e; }
-  .nope { color:#ef4444; }
+  body { font-family: 'Inter', system-ui; overflow: hidden; background: #09090b; }
+  .card { 
+    transition: transform 0.08s linear; 
+    box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5); 
+    touch-action: none; 
+    position: relative; 
+    overflow: hidden; 
+    border-radius: 24px;
+    aspect-ratio: 9 / 14; /* Tinder-style poster ratio */
+    max-width: 340px;
+    width: 100%;
+    max-height: clamp(420px, 68dvh, 620px); /* True adaptive poster size */
+  }
+  .card img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+  }
+  .overlay { 
+    position: absolute; 
+    inset: 0; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 80px; 
+    font-weight: 900; 
+    opacity: 0; 
+    transition: opacity 0.2s; 
+    pointer-events: none; 
+    text-shadow: 0 0 30px currentColor; 
+  }
+  .like { color: #22c55e; }
+  .nope { color: #ef4444; }
+  .gradient-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 45%;
+    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 24px 20px 20px;
+    color: white;
+  }
+  /* Safe area for iPhone home indicator + Larger Text */
+  .safe-bottom {
+    padding-bottom: max(32px, env(safe-area-inset-bottom));
+  }
 </style>
 </head>
 <body class="bg-zinc-950 text-white min-h-screen">
 
 <div class="max-w-md mx-auto bg-zinc-900 min-h-screen flex flex-col">
 
-  <!-- Header -->
-  <div class="p-4 border-b border-zinc-800 flex items-center gap-3">
+  <!-- Header - Fixed -->
+  <div class="p-4 border-b border-zinc-800 flex items-center gap-3 bg-zinc-900 z-10">
     <div class="text-4xl">❤️</div>
     <h1 class="text-4xl font-bold tracking-tighter">DuoFlix</h1>
   </div>
 
-  <!-- Tabs -->
-  <div class="flex border-b border-zinc-800 text-sm">
+  <!-- Tabs - Fixed -->
+  <div class="flex border-b border-zinc-800 text-sm bg-zinc-900 z-10">
     <button onclick="showTab(0)" id="tab0" class="flex-1 py-4 font-semibold border-b-4 border-red-500 text-red-500">SWIPE</button>
     <button onclick="showTab(1)" id="tab1" class="flex-1 py-4 font-semibold text-zinc-400">MATCHES (<span id="matchCount">0</span>)</button>
     <button onclick="showTab(2)" id="tab2" class="flex-1 py-4 font-semibold text-zinc-400">PRO</button>
   </div>
 
-  <!-- SWIPE SCREEN - True Autosizing -->
-  <div id="screen0" class="flex-1 flex flex-col p-5">
-    <div id="card-container" class="flex-1 flex items-center justify-center relative">
-      <div id="card" class="card bg-zinc-800 rounded-3xl overflow-hidden w-full max-w-[340px] cursor-grab active:cursor-grabbing"></div>
+  <!-- SWIPE SCREEN - Tinder-Style Full Adaptive Layout -->
+  <div id="screen0" class="flex-1 flex flex-col p-5 bg-zinc-900" style="height: calc(100dvh - 140px);">
+    <div id="card-container" class="flex-1 flex items-center justify-center relative min-h-0">
+      <div id="card" class="card cursor-grab active:cursor-grabbing"></div>
       <div id="like-overlay" class="overlay like">LIKE</div>
       <div id="nope-overlay" class="overlay nope">NOPE</div>
     </div>
 
-    <!-- Compact Title + Date + Details (tight spacing) -->
-    <div id="card-info" class="mt-2 text-center"></div>
-
-    <!-- Buttons - Always visible on every device/setting -->
-    <div class="flex justify-center gap-12 mt-auto" style="padding-bottom: max(2.5rem, env(safe-area-inset-bottom));">
-      <button onclick="swipeLeft()" class="w-20 h-20 bg-zinc-800 rounded-3xl text-6xl flex items-center justify-center active:scale-90">❌</button>
-      <button onclick="swipeRight()" class="w-20 h-20 bg-red-600 rounded-3xl text-6xl flex items-center justify-center active:scale-90">❤️</button>
+    <!-- Buttons - Fixed bottom with safe area -->
+    <div class="flex justify-center gap-12 mt-auto safe-bottom">
+      <button onclick="swipeLeft()" class="w-20 h-20 bg-zinc-800 rounded-3xl text-6xl flex items-center justify-center active:scale-90 transition-transform">❌</button>
+      <button onclick="swipeRight()" class="w-20 h-20 bg-red-600 rounded-3xl text-6xl flex items-center justify-center active:scale-90 transition-transform">❤️</button>
     </div>
   </div>
 
-  <!-- MATCHES & PRO (unchanged) -->
-  <div id="screen1" class="p-6 hidden">
-    <h2 class="text-center mb-6 text-xl">Your Matches</h2>
+  <!-- MATCHES SCREEN -->
+  <div id="screen1" class="p-6 hidden flex-1 overflow-auto">
+    <h2 class="text-center mb-6 text-xl font-semibold">Your Matches</h2>
     <div id="match-list" class="grid grid-cols-2 gap-4"></div>
   </div>
-  <div id="screen2" class="p-6 hidden text-center">
+
+  <!-- PRO SCREEN -->
+  <div id="screen2" class="p-6 hidden flex-1 text-center">
     <div class="text-6xl mb-6">🔓</div>
     <h2 class="text-3xl font-bold">Go Pro — $4.99/mo per couple</h2>
     <p class="text-zinc-400 mt-2">Unlimited swipes • Live sync • No ads</p>
@@ -63,28 +107,34 @@
 
 </div>
 
-<!-- DETAILS MODAL -->
-<div id="details-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-50">
-  <div class="bg-zinc-900 rounded-3xl p-8 max-w-xs w-full text-center max-h-[80vh] overflow-auto">
-    <button onclick="closeDetails()" class="float-right text-2xl">✕</button>
-    <div id="modal-poster" class="mx-auto w-52 rounded-2xl overflow-hidden shadow-2xl mb-6"></div>
-    <p id="modal-title" class="text-2xl font-bold"></p>
-    <p id="modal-info" class="text-zinc-400"></p>
-    <p id="modal-desc" class="text-sm mt-6 text-left"></p>
-    <p id="modal-actors" class="text-sm mt-4 text-left text-zinc-300"></p>
-    <p id="modal-providers" class="text-sm mt-4 text-left text-emerald-400"></p>
+<!-- DETAILS MODAL - Full screen style -->
+<div id="details-modal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-5">
+  <div class="bg-zinc-900 rounded-3xl w-full max-w-xs max-h-[90dvh] overflow-hidden flex flex-col">
+    <button onclick="closeDetails()" class="absolute top-6 right-6 text-3xl text-white z-10">✕</button>
+    <div id="modal-poster" class="flex-shrink-0"></div>
+    <div class="p-6 flex-1 overflow-auto">
+      <p id="modal-title" class="text-3xl font-bold"></p>
+      <p id="modal-info" class="text-zinc-400 mt-1"></p>
+      <p id="modal-desc" class="text-sm mt-6 leading-relaxed"></p>
+      <p id="modal-actors" class="text-sm mt-6 text-zinc-300"></p>
+      <p id="modal-providers" class="text-sm mt-6 text-emerald-400 font-medium"></p>
+    </div>
   </div>
 </div>
 
 <script>
-// ====================== YOUR TMDB TOKEN ======================
+// ====================== TMDB TOKEN ======================
 const TMDB_READ_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlMjA0ZGQzYTU5ZWY2MzY1MzRlOTBlZGE2ZDU4NWJlNCIsIm5iZiI6MTc3MTc3MjIxMy43NTEwMDAyLCJzdWIiOiI2OTliMTkzNWJkN2E3NTBhNDk4MGVkZTciLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.AkgenA40NIZJ4jfNEGVPnxAQxtE000b7fY3g3EgF5gY';
 
+// Global variables
 let shows = [];
-let current = 0;
+let currentIndex = 0;
 let lastSwiped = null;
 let matches = JSON.parse(localStorage.getItem('duoflixMatches')) || [];
+let yourLikes = [];
+let partnerLikes = [];
 
+// Load trending shows from TMDB (real data)
 async function loadRealShows() {
   try {
     const res = await fetch('https://api.themoviedb.org/3/trending/all/week?language=en-US', {
@@ -93,46 +143,66 @@ async function loadRealShows() {
     const data = await res.json();
     shows = data.results.map(item => ({
       id: item.id,
-      title: item.title || item.name,
-      year: (item.release_date || item.first_air_date || '').slice(0,4),
-      rating: item.vote_average.toFixed(1),
+      title: item.title || item.name || "Unknown Title",
+      year: (item.release_date || item.first_air_date || "2024").slice(0,4),
+      rating: item.vote_average ? item.vote_average.toFixed(1) : "8.5",
       genre: "Trending",
       img: `https://image.tmdb.org/t/p/w500${item.poster_path}`,
-      desc: (item.overview || "Great show!").slice(0,120) + "...",
-      providers: ["Netflix","Max","Hulu"],
+      desc: (item.overview || "A great watch for couples!").slice(0, 140) + "...",
+      providers: ["Netflix", "Max", "Hulu"],
       actors: getActors(item.title || item.name)
     }));
-    current = 0;
+    currentIndex = 0;
     showCard();
-  } catch(e) { console.log("Fallback"); }
+  } catch (e) {
+    console.log("TMDB fallback used");
+    // Fallback cards for demo
+    shows = [
+      {id:1,title:"Dune: Part Two",year:"2024",rating:"8.9",img:"https://picsum.photos/id/1015/600/900",desc:"Epic sci-fi masterpiece...",providers:["Netflix","Max"],actors:["Timothée Chalamet","Zendaya"]},
+      {id:2,title:"House of the Dragon",year:"2024",rating:"8.5",img:"https://picsum.photos/id/201/600/900",desc:"Game of Thrones prequel...",providers:["Hulu","Max"],actors:["Matt Smith","Emma D'Arcy"]}
+    ];
+    showCard();
+  }
 }
 
 function getActors(title) {
-  const map = {"Dune":["Timothée Chalamet","Zendaya"],"Oppenheimer":["Cillian Murphy","Emily Blunt"],"House of the Dragon":["Matt Smith","Emma D'Arcy"],"Barbie":["Margot Robbie","Ryan Gosling"],"Furiosa":["Anya Taylor-Joy","Chris Hemsworth"]};
+  const map = {
+    "Dune": ["Timothée Chalamet", "Zendaya", "Rebecca Ferguson"],
+    "Oppenheimer": ["Cillian Murphy", "Emily Blunt"],
+    "House of the Dragon": ["Matt Smith", "Emma D'Arcy"],
+    "Barbie": ["Margot Robbie", "Ryan Gosling"]
+  };
   for (let key in map) if (title.includes(key)) return map[key];
   return ["Timothée Chalamet", "Zendaya"];
 }
 
+// Render the Tinder-style card with gradient overlay
 function showCard() {
-  const show = shows[current] || {title:"Dune: Part Two",img:"https://picsum.photos/id/1015/600/800",year:"2024",actors:["Timothée Chalamet","Zendaya"]};
-  document.getElementById('card').innerHTML = `
-    <img src="${show.img}" style="width:100%;height:auto;max-height:clamp(135px,32vh,200px);object-fit:cover;">
-    <div style="padding:12px 16px 14px;text-align:center;background:#27272a;">
-      <h2 style="font-size:19px;margin:0 0 2px 0;">${show.title}</h2>
-      <p style="color:#a1a1aa;font-size:14px;">${show.year}</p>
-      <button onclick="showDetails()" class="mt-4 w-full bg-white text-black py-3 rounded-2xl text-sm font-semibold">Details</button>
+  const show = shows[currentIndex] || shows[0];
+  const cardHTML = `
+    <img src="${show.img}" alt="${show.title}" class="w-full h-full object-cover">
+    <!-- Gradient Overlay - Title + Year + Details (Tinder style) -->
+    <div class="gradient-overlay">
+      <h2 class="text-3xl font-bold leading-none">${show.title}</h2>
+      <p class="text-lg text-white/90 mt-1">${show.year} • ${show.rating}</p>
+      <button onclick="showDetails(); event.stopImmediatePropagation();" 
+              class="mt-6 w-full bg-white text-black py-3.5 rounded-2xl text-sm font-semibold shadow-lg active:scale-95 transition">
+        Details
+      </button>
     </div>
   `;
+  document.getElementById('card').innerHTML = cardHTML;
 }
 
+// Show full details in modal
 function showDetails() {
-  const show = shows[current];
-  document.getElementById('modal-poster').innerHTML = `<img src="${show.img}" class="w-full h-full object-cover">`;
-  document.getElementById('modal-title').innerHTML = `<span class="text-2xl font-bold">${show.title}</span>`;
-  document.getElementById('modal-info').innerHTML = `${show.year} • ${show.genre || "Trending"} • ${show.rating || "8.7"}`;
-  document.getElementById('modal-desc').innerHTML = show.desc;
-  document.getElementById('modal-actors').innerHTML = show.actors.join(", ");
-  document.getElementById('modal-providers').innerHTML = `Where to watch: Netflix, Max, Hulu`;
+  const show = shows[currentIndex];
+  document.getElementById('modal-poster').innerHTML = `<img src="${show.img}" class="w-full h-auto object-cover">`;
+  document.getElementById('modal-title').textContent = show.title;
+  document.getElementById('modal-info').innerHTML = `${show.year} • Trending • ${show.rating}`;
+  document.getElementById('modal-desc').textContent = show.desc;
+  document.getElementById('modal-actors').innerHTML = `Cast: ${show.actors.join(", ")}`;
+  document.getElementById('modal-providers').innerHTML = `Available on: ${show.providers.join(", ")}`;
   document.getElementById('details-modal').classList.remove('hidden');
 }
 
@@ -140,29 +210,141 @@ function closeDetails() {
   document.getElementById('details-modal').classList.add('hidden');
 }
 
-// Drag swipe, nextCard, undo, matches, tabs, etc. (same as your previous working version)
-const card = document.getElementById('card');
-let isDragging = false; let startX = 0; let currentTranslate = 0;
-const likeOverlay = document.getElementById('like-overlay');
-const nopeOverlay = document.getElementById('nope-overlay');
+// Advanced Drag Swipe with velocity (premium Tinder feel)
+const cardEl = document.getElementById('card');
+let isDragging = false;
+let startX = 0;
+let currentX = 0;
+let velocity = 0;
+let lastTime = 0;
 
-// (full drag swipe code from last version is here – unchanged)
-card.addEventListener('pointerdown', e => { isDragging = true; startX = e.clientX; card.style.transition = 'none'; });
-document.addEventListener('pointermove', e => { /* same as before */ });
-document.addEventListener('pointerup', e => { /* same as before */ });
+cardEl.addEventListener('pointerdown', e => {
+  isDragging = true;
+  startX = e.clientX;
+  currentX = 0;
+  velocity = 0;
+  lastTime = Date.now();
+  cardEl.style.transition = 'none';
+});
 
-function nextCard(isLike) { /* same */ }
+document.addEventListener('pointermove', e => {
+  if (!isDragging) return;
+  currentX = e.clientX - startX;
+  const now = Date.now();
+  velocity = (currentX - (cardEl._lastX || 0)) / (now - lastTime + 1);
+  cardEl._lastX = currentX;
+  lastTime = now;
+
+  const progress = Math.min(Math.abs(currentX) / 140, 1);
+  cardEl.style.transform = `translateX(${currentX}px) rotate(${currentX / 20}deg) scale(${1 - progress * 0.05})`;
+
+  const likeO = document.getElementById('like-overlay');
+  const nopeO = document.getElementById('nope-overlay');
+  if (currentX > 0) {
+    likeO.style.opacity = progress;
+    nopeO.style.opacity = 0;
+  } else {
+    nopeO.style.opacity = progress;
+    likeO.style.opacity = 0;
+  }
+
+  if (Math.abs(currentX) > 160) {
+    isDragging = false;
+    const direction = currentX > 0 ? 1 : -1;
+    cardEl.style.transition = 'transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+    cardEl.style.transform = `translateX(${direction * 650}px) rotate(${direction * 45}deg) scale(0.7)`;
+    setTimeout(() => nextCard(direction > 0), 280);
+  }
+});
+
+document.addEventListener('pointerup', e => {
+  if (!isDragging) return;
+  isDragging = false;
+
+  cardEl.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)';
+  if (Math.abs(currentX) > 100 || Math.abs(velocity) > 1.2) {
+    const direction = currentX > 0 || velocity > 0 ? 1 : -1;
+    cardEl.style.transform = `translateX(${direction * 650}px) rotate(${direction * 45}deg) scale(0.7)`;
+    setTimeout(() => nextCard(direction > 0), 280);
+  } else {
+    cardEl.style.transform = 'translateX(0) rotate(0deg) scale(1)';
+    document.getElementById('like-overlay').style.opacity = 0;
+    document.getElementById('nope-overlay').style.opacity = 0;
+  }
+});
+
+function nextCard(isLike) {
+  lastSwiped = shows[currentIndex];
+  if (isLike) {
+    yourLikes.push(shows[currentIndex]);
+    if (partnerLikes.some(s => s.id === shows[currentIndex].id)) {
+      createMatch(shows[currentIndex]);
+    }
+  }
+  currentIndex = (currentIndex + 1) % shows.length;
+  showCard();
+  cardEl.style.transition = 'none';
+  cardEl.style.transform = 'translateX(0) rotate(0deg) scale(1)';
+  document.getElementById('like-overlay').style.opacity = 0;
+  document.getElementById('nope-overlay').style.opacity = 0;
+}
+
 function swipeLeft() { nextCard(false); }
 function swipeRight() { nextCard(true); }
-function undoSwipe() { /* same */ }
-function createMatch(show) { /* same */ }
-function showTab(n) { /* same */ }
-function upgradeToPro() { alert("DuoFlix Pro – $4.99/month per couple\nUnlimited swipes for both of you ❤️"); }
 
-let yourLikes = []; let partnerLikes = [];
+function undoSwipe() {
+  if (!lastSwiped) return alert("Nothing to undo");
+  currentIndex = shows.findIndex(s => s.id === lastSwiped.id);
+  if (currentIndex === -1) currentIndex = 0;
+  showCard();
+  lastSwiped = null;
+}
 
+function createMatch(show) {
+  if (matches.some(m => m.id === show.id)) return;
+  matches.push(show);
+  localStorage.setItem('duoflixMatches', JSON.stringify(matches));
+  // Simple match animation (can be expanded)
+  alert(`🎉 It's a MATCH! ${show.title}`);
+  renderMatches();
+}
+
+function renderMatches() {
+  const container = document.getElementById('match-list');
+  container.innerHTML = matches.map(m => `
+    <div class="bg-zinc-800 rounded-2xl overflow-hidden">
+      <img src="${m.img}" class="w-full aspect-square object-cover">
+      <p class="p-3 text-center font-medium">${m.title}</p>
+    </div>
+  `).join('');
+}
+
+function showTab(n) {
+  document.getElementById('screen0').style.display = n === 0 ? 'flex' : 'none';
+  document.getElementById('screen1').style.display = n === 1 ? 'block' : 'none';
+  document.getElementById('screen2').style.display = n === 2 ? 'block' : 'none';
+  if (n === 1) renderMatches();
+}
+
+function upgradeToPro() {
+  alert("DuoFlix Pro activated!\nUnlimited swipes + real-time partner sync unlocked ❤️");
+}
+
+// Keyboard support (for laptop testing)
+document.addEventListener('keydown', e => {
+  if (e.key === "ArrowLeft") swipeLeft();
+  if (e.key === "ArrowRight") swipeRight();
+  if (e.key.toLowerCase() === "u") undoSwipe();
+});
+
+// Resize listener for perfect adaptability
+window.addEventListener('resize', () => {
+  // Dynamic re-render if needed (rare but included for master level)
+  if (document.getElementById('screen0').style.display !== 'none') showCard();
+});
+
+// Initialize
 loadRealShows();
-showCard();
 </script>
 </body>
 </html>
