@@ -92,7 +92,7 @@
     <button onclick="showTab(2)" id="tab2" class="flex-1 py-4 font-semibold text-zinc-400">PRO</button>
   </div>
 
-  <!-- SWIPE SCREEN - Tinder-Style Master Layout -->
+  <!-- SWIPE SCREEN -->
   <div id="screen0" class="flex-1 flex flex-col bg-zinc-900 relative" style="height: calc(100dvh - 140px);">
     <div id="card-container" class="flex-1 flex items-center justify-center relative min-h-0 p-5">
       <div id="card" class="card cursor-grab active:cursor-grabbing"></div>
@@ -100,7 +100,7 @@
       <div id="nope-overlay" class="overlay nope">NOPE</div>
     </div>
 
-    <!-- Fixed Action Bar - Never covered -->
+    <!-- Fixed Action Bar -->
     <div class="action-bar">
       <button onclick="undoSwipe()" class="action-btn undo-btn">↩︎</button>
       <button onclick="swipeLeft()" class="action-btn x-btn">✕</button>
@@ -124,14 +124,20 @@
 
 </div>
 
-<!-- DETAILS MODAL - No poster, clean and compact -->
+<!-- DETAILS MODAL - FIXED: Synopsis now always visible -->
 <div id="details-modal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-5">
   <div class="bg-zinc-900 rounded-3xl w-full max-w-xs max-h-[85dvh] overflow-hidden flex flex-col">
     <button onclick="closeDetails()" class="absolute top-6 right-6 text-4xl text-white z-10">✕</button>
     <div class="p-8 flex-1 overflow-auto">
       <p id="modal-title" class="text-3xl font-bold"></p>
       <p id="modal-info" class="text-zinc-400 mt-1"></p>
-      <p id="modal-desc" class="text-sm mt-8 leading-relaxed"></p>
+      
+      <!-- FIXED DESCRIPTION BLOCK -->
+      <div class="mt-8">
+        <p class="text-xs uppercase tracking-widest text-zinc-500 mb-2">Synopsis</p>
+        <p id="modal-desc" class="text-base leading-relaxed text-zinc-200"></p>
+      </div>
+
       <p id="modal-actors" class="text-sm mt-8 text-zinc-300"></p>
       <p id="modal-providers" class="text-sm mt-8 text-emerald-400 font-medium"></p>
     </div>
@@ -149,7 +155,6 @@ let matches = JSON.parse(localStorage.getItem('duoflixMatches')) || [];
 let yourLikes = [];
 let partnerLikes = [];
 
-// Load real trending shows
 async function loadRealShows() {
   try {
     const res = await fetch('https://api.themoviedb.org/3/trending/all/week?language=en-US', {
@@ -158,22 +163,22 @@ async function loadRealShows() {
     const data = await res.json();
     shows = data.results.map(item => ({
       id: item.id,
-      title: item.title || item.name || "Unknown",
+      title: item.title || item.name || "Unknown Title",
       year: (item.release_date || item.first_air_date || "2024").slice(0,4),
       rating: item.vote_average ? item.vote_average.toFixed(1) : "8.5",
       genre: "Trending",
       img: `https://image.tmdb.org/t/p/w500${item.poster_path}`,
-      desc: (item.overview || "Great watch for couples!").slice(0, 160) + "...",
+      desc: (item.overview || "No synopsis available for this title.").slice(0, 220) + "...",
       providers: ["Netflix", "Max", "Hulu"],
       actors: getActors(item.title || item.name)
     }));
     currentIndex = 0;
     showCard();
   } catch(e) {
-    console.log("TMDB fallback");
+    console.log("Fallback data used");
     shows = [
-      {id:1,title:"Dune: Part Two",year:"2024",rating:"8.9",img:"https://picsum.photos/id/1015/600/900",desc:"Epic sci-fi for couples...",providers:["Netflix","Max"],actors:["Timothée Chalamet","Zendaya"]},
-      {id:2,title:"House of the Dragon",year:"2024",rating:"8.5",img:"https://picsum.photos/id/201/600/900",desc:"Game of Thrones prequel...",providers:["Hulu","Max"],actors:["Matt Smith","Emma D'Arcy"]}
+      {id:1,title:"Dune: Part Two",year:"2024",rating:"8.9",img:"https://picsum.photos/id/1015/600/900",desc:"Paul Atreides unites with Chani and the Fremen while seeking revenge against his enemies. A mythic journey unfolds as war comes to the entire universe.",providers:["Netflix","Max"],actors:["Timothée Chalamet","Zendaya"]},
+      {id:2,title:"House of the Dragon",year:"2024",rating:"8.5",img:"https://picsum.photos/id/201/600/900",desc:"The Targaryen civil war that took place about 200 years before events portrayed in 'Game of Thrones'.",providers:["Hulu","Max"],actors:["Matt Smith","Emma D'Arcy"]}
     ];
     showCard();
   }
@@ -215,7 +220,7 @@ function closeDetails() {
   document.getElementById('details-modal').classList.add('hidden');
 }
 
-// Premium Drag Swipe with velocity
+// Premium Drag Swipe (unchanged from last working version)
 const card = document.getElementById('card');
 let isDragging = false;
 let startX = 0;
@@ -326,19 +331,18 @@ function upgradeToPro() {
   alert("DuoFlix Pro – $4.99/month per couple\nUnlimited swipes for both of you ❤️");
 }
 
-// Keyboard support for laptop
+// Keyboard support
 document.addEventListener('keydown', e => {
   if (e.key === "ArrowLeft") swipeLeft();
   if (e.key === "ArrowRight") swipeRight();
   if (e.key.toLowerCase() === "u") undoSwipe();
 });
 
-// Resize listener for perfect adaptability
+// Resize listener
 window.addEventListener('resize', () => {
   if (document.getElementById('screen0').style.display !== 'none') showCard();
 });
 
-// Initialize
 loadRealShows();
 </script>
 </body>
