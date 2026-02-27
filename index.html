@@ -36,7 +36,7 @@
   <div class="flex border-b border-zinc-800 text-sm bg-zinc-900 z-10">
     <button onclick="showTab(0)" id="tab0" class="flex-1 py-4 font-semibold border-b-4 border-red-500 text-red-500">SWIPE</button>
     <button onclick="showTab(1)" id="tab1" class="flex-1 py-4 font-semibold text-zinc-400">MATCHES (<span id="matchCount">0</span>)</button>
-    <button onclick="showTab(2)" id="tab2" class="flex-1 py-4 font-semibold text-zinc-400">ROOM</button>
+    <button onclick="showTab(2)" id="tab2" class="flex-1 py-4 font-semibold text-zinc-400">Watch Together</button>
     <button onclick="showTab(3)" id="tab3" class="flex-1 py-4 font-semibold text-zinc-400">PRO</button>
   </div>
 
@@ -60,16 +60,22 @@
     <div id="match-list" class="grid grid-cols-2 gap-4"></div>
   </div>
 
-  <!-- ROOM SCREEN (Couples Room) -->
-  <div id="screen2" class="p-6 hidden flex-1 flex flex-col">
-    <h2 class="text-center text-2xl font-bold mb-8">Couples Room</h2>
-    <div id="room-status" class="text-center mb-6 text-lg font-medium"></div>
-    <button onclick="createRoom()" class="bg-red-600 text-white py-4 rounded-3xl text-lg font-semibold mb-4">Create New Room</button>
-    <div class="flex gap-3">
-      <input id="join-code" placeholder="Enter 6-digit code" class="flex-1 bg-zinc-800 rounded-3xl px-6 py-4 text-center text-lg">
-      <button onclick="joinRoom()" class="bg-white text-black px-8 rounded-3xl font-semibold">Join</button>
+  <!-- Watch Together Screen (Invite Partner) -->
+  <div id="screen2" class="p-6 hidden flex-1 flex flex-col items-center justify-center">
+    <div class="text-center max-w-xs">
+      <div class="text-6xl mb-6">👥</div>
+      <h2 class="text-3xl font-bold mb-2">Watch Together</h2>
+      <p class="text-zinc-400 mb-8">Invite your partner to swipe & match movies in real time</p>
+      
+      <button onclick="createRoom()" class="w-full bg-red-600 text-white py-5 rounded-3xl text-lg font-semibold mb-6">Create Room Code</button>
+      
+      <div id="room-code-display" class="hidden bg-zinc-800 rounded-3xl p-6 text-center">
+        <p class="text-xs uppercase tracking-widest text-zinc-500 mb-2">Your Room Code</p>
+        <p id="room-code" class="text-5xl font-bold text-red-500 tracking-widest mb-6"></p>
+        <button onclick="copyRoomCode()" class="w-full bg-white text-black py-4 rounded-2xl font-semibold mb-3">Copy Code</button>
+        <button onclick="shareRoomCode()" class="w-full bg-zinc-700 text-white py-4 rounded-2xl font-semibold">Share with Partner</button>
+      </div>
     </div>
-    <div id="room-partner" class="mt-8 text-center text-emerald-400 font-medium"></div>
   </div>
 
   <!-- PRO SCREEN -->
@@ -100,7 +106,7 @@
 </div>
 
 <script>
-// ====================== TMDB TOKEN ======================
+// TMDB TOKEN + full app logic (complete swipe restored)
 const TMDB_READ_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlMjA0ZGQzYTU5ZWY2MzY1MzRlOTBlZGE2ZDU4NWJlNCIsIm5iZiI6MTc3MTc3MjIxMy43NTEwMDAyLCJzdWIiOiI2OTliMTkzNWJkN2E3NTBhNDk4MGVkZTciLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.AkgenA40NIZJ4jfNEGVPnxAQxtE000b7fY3g3EgF5gY';
 
 let shows = [];
@@ -111,7 +117,6 @@ let yourLikes = [];
 let partnerLikes = [];
 let currentRoomCode = null;
 
-// Load shows
 async function loadRealShows() {
   try {
     const res = await fetch('https://api.themoviedb.org/3/trending/all/week?language=en-US', {
@@ -171,36 +176,128 @@ function closeDetails() {
   document.getElementById('details-modal').classList.add('hidden');
 }
 
-// Drag swipe (premium feel) - unchanged
+// FULL PREMIUM DRAG SWIPE (restored completely)
 const card = document.getElementById('card');
-let isDragging = false; let startX = 0; let currentX = 0; let velocity = 0; let lastTime = 0;
+let isDragging = false;
+let startX = 0;
+let currentX = 0;
+let velocity = 0;
+let lastTime = 0;
 
-card.addEventListener('pointerdown', e => { isDragging = true; startX = e.clientX; currentX = 0; velocity = 0; lastTime = Date.now(); card.style.transition = 'none'; });
-document.addEventListener('pointermove', e => { /* same premium drag code as before */ });
-document.addEventListener('pointerup', e => { /* same */ });
+card.addEventListener('pointerdown', e => {
+  isDragging = true;
+  startX = e.clientX;
+  currentX = 0;
+  velocity = 0;
+  lastTime = Date.now();
+  card.style.transition = 'none';
+});
 
-function nextCard(isLike) { /* same */ }
-function swipeLeft() { nextCard(false); }
-function swipeRight() { nextCard(true); }
-function undoSwipe() { /* same */ }
-function createMatch(show) { /* same */ }
-function renderMatches() { /* same */ }
+document.addEventListener('pointermove', e => {
+  if (!isDragging) return;
+  currentX = e.clientX - startX;
+  const now = Date.now();
+  velocity = (currentX - (card._lastX || 0)) / (now - lastTime + 1);
+  card._lastX = currentX;
+  lastTime = now;
 
-// ==================== COUPLES ROOM ====================
-function createRoom() {
-  currentRoomCode = Math.floor(100000 + Math.random() * 900000).toString();
-  document.getElementById('room-status').innerHTML = `Your Room Code: <span class="text-3xl font-bold text-red-500">${currentRoomCode}</span><br>Share this with your partner!`;
-  document.getElementById('room-partner').innerHTML = 'Waiting for partner to join...';
+  const progress = Math.min(Math.abs(currentX) / 140, 1);
+  card.style.transform = `translateX(${currentX}px) rotate(${currentX / 20}deg) scale(${1 - progress * 0.05})`;
+
+  const likeO = document.getElementById('like-overlay');
+  const nopeO = document.getElementById('nope-overlay');
+  if (currentX > 0) { likeO.style.opacity = progress; nopeO.style.opacity = 0; } 
+  else { nopeO.style.opacity = progress; likeO.style.opacity = 0; }
+
+  if (Math.abs(currentX) > 160) {
+    isDragging = false;
+    const dir = currentX > 0 ? 1 : -1;
+    card.style.transition = 'transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+    card.style.transform = `translateX(${dir * 650}px) rotate(${dir * 45}deg) scale(0.7)`;
+    setTimeout(() => nextCard(dir > 0), 280);
+  }
+});
+
+document.addEventListener('pointerup', e => {
+  if (!isDragging) return;
+  isDragging = false;
+  card.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)';
+  if (Math.abs(currentX) > 100 || Math.abs(velocity) > 1.2) {
+    const dir = currentX > 0 || velocity > 0 ? 1 : -1;
+    card.style.transform = `translateX(${dir * 650}px) rotate(${dir * 45}deg) scale(0.7)`;
+    setTimeout(() => nextCard(dir > 0), 280);
+  } else {
+    card.style.transform = 'translateX(0) rotate(0deg) scale(1)';
+    document.getElementById('like-overlay').style.opacity = 0;
+    document.getElementById('nope-overlay').style.opacity = 0;
+  }
+});
+
+function nextCard(isLike) {
+  lastSwiped = shows[currentIndex];
+  if (isLike) {
+    yourLikes.push(shows[currentIndex]);
+    if (partnerLikes.some(s => s.id === shows[currentIndex].id)) createMatch(shows[currentIndex]);
+  }
+  currentIndex = (currentIndex + 1) % shows.length;
+  showCard();
+  card.style.transition = 'none';
+  card.style.transform = 'translateX(0) rotate(0deg) scale(1)';
+  document.getElementById('like-overlay').style.opacity = 0;
+  document.getElementById('nope-overlay').style.opacity = 0;
 }
 
-function joinRoom() {
-  const code = document.getElementById('join-code').value.trim();
-  if (code.length === 6) {
-    currentRoomCode = code;
-    document.getElementById('room-status').innerHTML = `Joined Room: <span class="text-3xl font-bold text-red-500">${code}</span>`;
-    document.getElementById('room-partner').innerHTML = '✅ Partner connected! Swipes now sync.';
+function swipeLeft() { nextCard(false); }
+function swipeRight() { nextCard(true); }
+
+function undoSwipe() {
+  if (!lastSwiped) return alert("Nothing to undo yet");
+  currentIndex = shows.findIndex(s => s.id === lastSwiped.id);
+  if (currentIndex === -1) currentIndex = 0;
+  showCard();
+  lastSwiped = null;
+}
+
+function createMatch(show) {
+  if (matches.some(m => m.id === show.id)) return;
+  matches.push(show);
+  localStorage.setItem('duoflixMatches', JSON.stringify(matches));
+  alert(`🎉 MATCH! ${show.title}`);
+  renderMatches();
+}
+
+function renderMatches() {
+  const container = document.getElementById('match-list');
+  container.innerHTML = matches.map(m => `
+    <div class="bg-zinc-800 rounded-2xl overflow-hidden">
+      <img src="${m.img}" class="w-full aspect-square object-cover">
+      <p class="p-3 text-center font-medium">${m.title}</p>
+    </div>
+  `).join('');
+}
+
+// Watch Together Room
+function createRoom() {
+  currentRoomCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const display = document.getElementById('room-code-display');
+  display.classList.remove('hidden');
+  document.getElementById('room-code').textContent = currentRoomCode;
+}
+
+function copyRoomCode() {
+  navigator.clipboard.writeText(currentRoomCode).then(() => {
+    alert("✅ Code copied! Send it to your partner.");
+  });
+}
+
+function shareRoomCode() {
+  if (navigator.share) {
+    navigator.share({
+      title: 'Join my DuoFlix room!',
+      text: `Watch movies with me! Room code: ${currentRoomCode}`,
+    });
   } else {
-    alert("Enter a valid 6-digit code");
+    alert("Copy the code above and send it to your partner on WhatsApp or text ❤️");
   }
 }
 
@@ -217,15 +314,16 @@ function upgradeToPro() {
   alert("DuoFlix Pro – $4.99/month per couple\nUnlimited swipes for both of you ❤️");
 }
 
-// Keyboard + resize support
+// Keyboard + resize
 document.addEventListener('keydown', e => {
   if (e.key === "ArrowLeft") swipeLeft();
   if (e.key === "ArrowRight") swipeRight();
   if (e.key.toLowerCase() === "u") undoSwipe();
 });
-window.addEventListener('resize', () => { if (document.getElementById('screen0').style.display !== 'none') showCard(); });
+window.addEventListener('resize', () => {
+  if (document.getElementById('screen0').style.display !== 'none') showCard();
+});
 
-// Start
 loadRealShows();
 </script>
 </body>
