@@ -62,30 +62,31 @@
     <div id="match-list" class="grid grid-cols-2 gap-4"></div>
   </div>
 
-  <!-- WATCH TOGETHER SCREEN - Fully Responsive (No Scroll Needed) -->
-  <div id="screen2" class="p-6 hidden flex-1 flex flex-col bg-zinc-900">
-    <div class="text-center max-w-xs mx-auto flex-1 flex flex-col justify-center">
-      <div class="text-6xl mb-6">👥</div>
-      <h2 class="text-3xl font-bold text-white mb-2">Watch Together</h2>
-      <p class="text-zinc-400 mb-8">Swipe & match movies in real time with your partner</p>
+  <!-- WATCH TOGETHER SCREEN - FIXED: No scroll, perfect fit on phone & computer -->
+  <div id="screen2" class="flex-1 flex flex-col bg-zinc-900 p-6 overflow-hidden" style="height:calc(100dvh - 140px);">
+    <div class="flex-1 flex flex-col justify-center">
+      <div class="text-center">
+        <div class="text-6xl mb-6">👥</div>
+        <h2 class="text-3xl font-bold text-white mb-2">Watch Together</h2>
+        <p class="text-zinc-400 mb-8">Swipe & match movies in real time with your partner</p>
 
-      <button onclick="createRoom()" class="w-full bg-red-600 text-white py-5 rounded-3xl text-lg font-semibold mb-8">Create Room Code</button>
+        <button onclick="createRoom()" class="w-full bg-red-600 text-white py-5 rounded-3xl text-lg font-semibold mb-8">Create Room Code</button>
 
-      <!-- Room Code Display -->
-      <div id="room-code-display" class="hidden bg-zinc-800 rounded-3xl p-6 text-center">
-        <p class="text-xs uppercase tracking-widest text-zinc-500 mb-2">Your Room Code</p>
-        <p id="room-code" class="text-5xl font-bold text-red-500 tracking-widest mb-6"></p>
-        <button onclick="copyRoomCode()" class="w-full bg-white text-black py-4 rounded-2xl font-semibold mb-3">Copy Code</button>
-        <button onclick="shareRoomCode()" class="w-full bg-zinc-700 text-white py-4 rounded-2xl font-semibold">Share with Partner</button>
-      </div>
-
-      <!-- Join Section - Always Visible, No Scroll -->
-      <div class="mt-auto pt-8 border-t border-zinc-700">
-        <p class="text-sm text-zinc-400 mb-3">Have a code? Join room</p>
-        <div class="flex gap-3">
-          <input id="join-code" placeholder="6-digit code" maxlength="6" class="flex-1 bg-zinc-800 text-white rounded-3xl px-6 py-4 text-center text-lg">
-          <button onclick="joinRoom()" class="bg-white text-black px-8 rounded-3xl font-semibold whitespace-nowrap">Join</button>
+        <div id="room-code-display" class="hidden bg-zinc-800 rounded-3xl p-6 text-center">
+          <p class="text-xs uppercase tracking-widest text-zinc-500 mb-2">Your Room Code</p>
+          <p id="room-code" class="text-5xl font-bold text-red-500 tracking-widest mb-6"></p>
+          <button onclick="copyRoomCode()" class="w-full bg-white text-black py-4 rounded-2xl font-semibold mb-3">Copy Code</button>
+          <button onclick="shareRoomCode()" class="w-full bg-zinc-700 text-white py-4 rounded-2xl font-semibold">Share with Partner</button>
         </div>
+      </div>
+    </div>
+
+    <!-- Join section - pinned at bottom with safe area, no scroll -->
+    <div class="mt-auto pt-8 border-t border-zinc-700">
+      <p class="text-sm text-zinc-400 mb-3">Have a code? Join room</p>
+      <div class="flex gap-3">
+        <input id="join-code" placeholder="6-digit code" maxlength="6" class="flex-1 bg-zinc-800 text-white rounded-3xl px-6 py-4 text-center text-lg">
+        <button onclick="joinRoom()" class="bg-white text-black px-8 rounded-3xl font-semibold whitespace-nowrap">Join</button>
       </div>
     </div>
   </div>
@@ -128,9 +129,8 @@ let matches = JSON.parse(localStorage.getItem('duoflixMatches')) || [];
 let yourLikes = [];
 let partnerLikes = [];
 let currentRoomCode = null;
-let partnerJoined = false;
 
-// Load shows
+// Load shows (unchanged)
 async function loadRealShows() {
   try {
     const res = await fetch('https://api.themoviedb.org/3/trending/all/week?language=en-US', {
@@ -189,7 +189,7 @@ function closeDetails() {
   document.getElementById('details-modal').classList.add('hidden');
 }
 
-// Full Premium Drag Swipe
+// Full Premium Drag Swipe (working)
 const card = document.getElementById('card');
 let isDragging = false;
 let startX = 0;
@@ -289,13 +289,13 @@ function renderMatches() {
   `).join('');
 }
 
-// Watch Together Room with Real-Time Demo
+// Watch Together Room with localStorage for easy testing across tabs
 function createRoom() {
   currentRoomCode = Math.floor(100000 + Math.random() * 900000).toString();
+  localStorage.setItem('currentRoomCode', currentRoomCode);
   const display = document.getElementById('room-code-display');
   display.classList.remove('hidden');
   document.getElementById('room-code').textContent = currentRoomCode;
-  partnerJoined = false;
 }
 
 function copyRoomCode() {
@@ -312,15 +312,15 @@ function shareRoomCode() {
 
 function joinRoom() {
   const code = document.getElementById('join-code').value.trim();
-  if (code.length === 6 && code === currentRoomCode) {
-    partnerJoined = true;
+  const savedCode = localStorage.getItem('currentRoomCode');
+  if (code.length === 6 && code === savedCode) {
     alert(`✅ Partner joined Room ${code}!\nLikes now sync in real time. Try swiping!`);
   } else {
     alert("Enter the exact code your partner created");
   }
 }
 
-// Tab system with perfect color
+// Tab system with perfect colors
 function showTab(n) {
   document.getElementById('screen0').style.display = n === 0 ? 'flex' : 'none';
   document.getElementById('screen1').style.display = n === 1 ? 'block' : 'none';
