@@ -20,6 +20,7 @@
   .undo-btn { background:#27272a; color:#a1a1aa; }
   .x-btn { background:#27272a; color:#ef4444; }
   .heart-btn { background:#ef4444; color:white; }
+  .tab-active { border-bottom:4px solid #ef4444; color:#ef4444; }
 </style>
 </head>
 <body>
@@ -29,15 +30,15 @@
   <!-- Header -->
   <div class="p-4 border-b border-zinc-800 flex items-center gap-3 bg-zinc-900 z-10">
     <div class="text-4xl">❤️</div>
-    <h1 class="text-4xl font-bold tracking-tighter">DuoFlix</h1>
+    <h1 class="text-4xl font-bold tracking-tighter text-white">DuoFlix</h1>
   </div>
 
   <!-- Tabs -->
   <div class="flex border-b border-zinc-800 text-sm bg-zinc-900 z-10">
-    <button onclick="showTab(0)" id="tab0" class="flex-1 py-4 font-semibold border-b-4 border-red-500 text-red-500">SWIPE</button>
-    <button onclick="showTab(1)" id="tab1" class="flex-1 py-4 font-semibold text-zinc-400">MATCHES (<span id="matchCount">0</span>)</button>
-    <button onclick="showTab(2)" id="tab2" class="flex-1 py-4 font-semibold text-zinc-400">Watch Together</button>
-    <button onclick="showTab(3)" id="tab3" class="flex-1 py-4 font-semibold text-zinc-400">PRO</button>
+    <button onclick="showTab(0)" id="tab0" class="flex-1 py-4 font-semibold tab-active">SWIPE</button>
+    <button onclick="showTab(1)" id="tab1" class="flex-1 py-4 font-semibold text-white">MATCHES (<span id="matchCount">0</span>)</button>
+    <button onclick="showTab(2)" id="tab2" class="flex-1 py-4 font-semibold text-white">Watch Together</button>
+    <button onclick="showTab(3)" id="tab3" class="flex-1 py-4 font-semibold text-white">PRO</button>
   </div>
 
   <!-- SWIPE SCREEN -->
@@ -56,24 +57,35 @@
 
   <!-- MATCHES SCREEN -->
   <div id="screen1" class="p-6 hidden flex-1 overflow-auto">
-    <h2 class="text-center mb-6 text-xl font-semibold">Your Matches</h2>
+    <h2 class="text-center mb-6 text-xl font-semibold text-white">Your Matches</h2>
     <div id="match-list" class="grid grid-cols-2 gap-4"></div>
   </div>
 
-  <!-- Watch Together Screen (Invite Partner) -->
-  <div id="screen2" class="p-6 hidden flex-1 flex flex-col items-center justify-center">
-    <div class="text-center max-w-xs">
+  <!-- WATCH TOGETHER SCREEN (Clear Invite Flow) -->
+  <div id="screen2" class="p-6 hidden flex-1 flex flex-col bg-zinc-900 overflow-auto safe-bottom">
+    <div class="text-center max-w-xs mx-auto">
       <div class="text-6xl mb-6">👥</div>
-      <h2 class="text-3xl font-bold mb-2">Watch Together</h2>
-      <p class="text-zinc-400 mb-8">Invite your partner to swipe & match movies in real time</p>
-      
-      <button onclick="createRoom()" class="w-full bg-red-600 text-white py-5 rounded-3xl text-lg font-semibold mb-6">Create Room Code</button>
-      
+      <h2 class="text-3xl font-bold text-white mb-2">Watch Together</h2>
+      <p class="text-zinc-400 mb-8">Swipe movies in real time with your partner</p>
+
+      <!-- CREATE SECTION -->
+      <button onclick="createRoom()" class="w-full bg-red-600 hover:bg-red-700 text-white py-5 rounded-3xl text-lg font-semibold mb-8 transition">Create Room Code</button>
+
+      <!-- ROOM CODE DISPLAY -->
       <div id="room-code-display" class="hidden bg-zinc-800 rounded-3xl p-6 text-center">
         <p class="text-xs uppercase tracking-widest text-zinc-500 mb-2">Your Room Code</p>
         <p id="room-code" class="text-5xl font-bold text-red-500 tracking-widest mb-6"></p>
         <button onclick="copyRoomCode()" class="w-full bg-white text-black py-4 rounded-2xl font-semibold mb-3">Copy Code</button>
         <button onclick="shareRoomCode()" class="w-full bg-zinc-700 text-white py-4 rounded-2xl font-semibold">Share with Partner</button>
+      </div>
+
+      <!-- JOIN SECTION -->
+      <div class="mt-10">
+        <p class="text-sm text-zinc-400 mb-3">Have a code? Join room</p>
+        <div class="flex gap-3">
+          <input id="join-code" placeholder="6-digit code" maxlength="6" class="flex-1 bg-zinc-800 text-white rounded-3xl px-6 py-4 text-center text-lg">
+          <button onclick="joinRoom()" class="bg-white text-black px-8 rounded-3xl font-semibold">Join</button>
+        </div>
       </div>
     </div>
   </div>
@@ -81,7 +93,7 @@
   <!-- PRO SCREEN -->
   <div id="screen3" class="p-6 hidden flex-1 text-center">
     <div class="text-6xl mb-6">🔓</div>
-    <h2 class="text-3xl font-bold">Go Pro — $4.99/mo per couple</h2>
+    <h2 class="text-3xl font-bold text-white">Go Pro — $4.99/mo per couple</h2>
     <p class="text-zinc-400 mt-2">Unlimited swipes • Live sync • No ads</p>
     <button onclick="upgradeToPro()" class="mt-12 bg-gradient-to-r from-red-500 to-pink-500 w-full py-5 rounded-3xl text-xl font-bold">Upgrade Now</button>
   </div>
@@ -93,7 +105,7 @@
   <div class="bg-zinc-900 rounded-3xl w-full max-w-xs max-h-[85dvh] overflow-hidden flex flex-col">
     <button onclick="closeDetails()" class="absolute top-6 right-6 text-4xl text-white z-10">✕</button>
     <div class="p-8 flex-1 overflow-auto">
-      <p id="modal-title" class="text-3xl font-bold"></p>
+      <p id="modal-title" class="text-3xl font-bold text-white"></p>
       <p id="modal-info" class="text-zinc-400 mt-1"></p>
       <div class="mt-8">
         <p class="text-xs uppercase tracking-widest text-zinc-500 mb-2">Synopsis</p>
@@ -106,7 +118,7 @@
 </div>
 
 <script>
-// TMDB TOKEN + full app logic (complete swipe restored)
+// ====================== TMDB TOKEN ======================
 const TMDB_READ_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlMjA0ZGQzYTU5ZWY2MzY1MzRlOTBlZGE2ZDU4NWJlNCIsIm5iZiI6MTc3MTc3MjIxMy43NTEwMDAyLCJzdWIiOiI2OTliMTkzNWJkN2E3NTBhNDk4MGVkZTciLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.AkgenA40NIZJ4jfNEGVPnxAQxtE000b7fY3g3EgF5gY';
 
 let shows = [];
@@ -117,6 +129,7 @@ let yourLikes = [];
 let partnerLikes = [];
 let currentRoomCode = null;
 
+// Load shows
 async function loadRealShows() {
   try {
     const res = await fetch('https://api.themoviedb.org/3/trending/all/week?language=en-US', {
@@ -137,7 +150,6 @@ async function loadRealShows() {
     currentIndex = 0;
     showCard();
   } catch(e) {
-    console.log("Fallback");
     shows = [{id:1,title:"Dune: Part Two",year:"2024",rating:"8.9",genre:"Sci-Fi",img:"https://picsum.photos/id/1015/600/900",desc:"Paul Atreides unites with Chani...",providers:["Netflix","Max"],actors:["Timothée Chalamet","Zendaya"]}];
     showCard();
   }
@@ -176,7 +188,7 @@ function closeDetails() {
   document.getElementById('details-modal').classList.add('hidden');
 }
 
-// FULL PREMIUM DRAG SWIPE (restored completely)
+// Premium Drag Swipe (full working version)
 const card = document.getElementById('card');
 let isDragging = false;
 let startX = 0;
@@ -271,7 +283,7 @@ function renderMatches() {
   container.innerHTML = matches.map(m => `
     <div class="bg-zinc-800 rounded-2xl overflow-hidden">
       <img src="${m.img}" class="w-full aspect-square object-cover">
-      <p class="p-3 text-center font-medium">${m.title}</p>
+      <p class="p-3 text-center font-medium text-white">${m.title}</p>
     </div>
   `).join('');
 }
@@ -285,28 +297,39 @@ function createRoom() {
 }
 
 function copyRoomCode() {
-  navigator.clipboard.writeText(currentRoomCode).then(() => {
-    alert("✅ Code copied! Send it to your partner.");
-  });
+  navigator.clipboard.writeText(currentRoomCode).then(() => alert("✅ Code copied! Send it to your partner."));
 }
 
 function shareRoomCode() {
   if (navigator.share) {
-    navigator.share({
-      title: 'Join my DuoFlix room!',
-      text: `Watch movies with me! Room code: ${currentRoomCode}`,
-    });
+    navigator.share({ title: 'Join my DuoFlix room!', text: `Watch movies with me! Room code: ${currentRoomCode}` });
   } else {
-    alert("Copy the code above and send it to your partner on WhatsApp or text ❤️");
+    alert("Copy the code above and send it to your partner ❤️");
   }
 }
 
-// Tab system
+function joinRoom() {
+  const code = document.getElementById('join-code').value.trim();
+  if (code.length === 6) {
+    currentRoomCode = code;
+    alert(`✅ Joined Room ${code}!\nYou and your partner are now connected.`);
+  } else {
+    alert("Enter a valid 6-digit code");
+  }
+}
+
+// Tab system with active indicator
 function showTab(n) {
+  // Hide all screens
   document.getElementById('screen0').style.display = n === 0 ? 'flex' : 'none';
   document.getElementById('screen1').style.display = n === 1 ? 'block' : 'none';
   document.getElementById('screen2').style.display = n === 2 ? 'flex' : 'none';
   document.getElementById('screen3').style.display = n === 3 ? 'block' : 'none';
+
+  // Update active tab styling
+  document.querySelectorAll('[id^="tab"]').forEach(tab => tab.classList.remove('tab-active'));
+  document.getElementById(`tab${n}`).classList.add('tab-active');
+
   if (n === 1) renderMatches();
 }
 
@@ -314,12 +337,13 @@ function upgradeToPro() {
   alert("DuoFlix Pro – $4.99/month per couple\nUnlimited swipes for both of you ❤️");
 }
 
-// Keyboard + resize
+// Keyboard support
 document.addEventListener('keydown', e => {
   if (e.key === "ArrowLeft") swipeLeft();
   if (e.key === "ArrowRight") swipeRight();
   if (e.key.toLowerCase() === "u") undoSwipe();
 });
+
 window.addEventListener('resize', () => {
   if (document.getElementById('screen0').style.display !== 'none') showCard();
 });
