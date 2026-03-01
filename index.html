@@ -27,7 +27,11 @@
   .like { color:#22c55e; }
   .nope { color:#ef4444; }
   .gradient-overlay { position:absolute; bottom:0; left:0; right:0; height:45%; background:linear-gradient(to top,rgba(0,0,0,0.92)0%,rgba(0,0,0,0.55)55%,transparent 100%); display:flex; flex-direction:column; justify-content:flex-end; padding:24px 20px 20px; color:white; }
-  .action-bar { display:flex; justify-content:center; gap:32px; padding:20px 0; background:#09090b; border-top:1px solid #27272a; }
+  .action-bar { 
+    display:flex; justify-content:center; gap:32px; 
+    padding:20px 0 max(32px, env(safe-area-inset-bottom)); 
+    background:#09090b; border-top:1px solid #27272a; 
+  }
   .action-btn { width:62px; height:62px; border-radius:9999px; display:flex; align-items:center; justify-content:center; font-size:32px; transition:all 0.2s; box-shadow:0 10px 15px -3px rgb(0 0 0 / 0.3); }
   .action-btn:active { transform:scale(0.85); }
   .undo-btn { background:#27272a; color:#a1a1aa; }
@@ -41,7 +45,7 @@
 </head>
 <body>
 
-<div class="max-w-md mx-auto bg-zinc-900 min-h-screen flex flex-col" style="height:100dvh;">
+<div class="max-w-md mx-auto bg-zinc-900 h-screen flex flex-col overflow-hidden">
 
   <!-- Header -->
   <div class="p-4 border-b border-zinc-800 flex items-center gap-3 bg-zinc-900 z-10">
@@ -57,8 +61,8 @@
     <button onclick="showTab(3)" id="tab3" class="flex-1 py-4 font-semibold tab">PRO</button>
   </div>
 
-  <!-- SWIPE SCREEN (unchanged) -->
-  <div id="screen0" class="flex-1 flex flex-col bg-zinc-900 relative">
+  <!-- SWIPE SCREEN -->
+  <div id="screen0" class="flex-1 flex flex-col bg-zinc-900 relative overflow-hidden">
     <div id="card-container" class="flex-1 flex items-center justify-center relative min-h-0 p-5 overflow-visible">
       <div id="card" class="card cursor-grab active:cursor-grabbing"></div>
       <div id="like-overlay" class="overlay like">LIKE</div>
@@ -72,15 +76,14 @@
     </div>
   </div>
 
-  <!-- MATCHES SCREEN (unchanged) -->
+  <!-- MATCHES SCREEN -->
   <div id="screen1" class="p-6 hidden flex-1 overflow-auto">
     <h2 class="text-center mb-6 text-xl font-semibold text-white">Your Matches</h2>
     <div id="match-list" class="grid grid-cols-2 gap-4"></div>
   </div>
 
-  <!-- WATCH TOGETHER SCREEN — MASTER MOBILE FIX -->
+  <!-- WATCH TOGETHER SCREEN (mobile-perfect pinned join) -->
   <div id="screen2" class="flex-1 flex flex-col bg-zinc-900 overflow-y-auto p-6" style="padding-bottom: max(48px, env(safe-area-inset-bottom));">
-    <!-- Scrollable centered content -->
     <div class="flex-1 flex flex-col justify-center min-h-0">
       <div class="text-center">
         <div class="text-6xl mb-6">👥</div>
@@ -95,8 +98,6 @@
         </div>
       </div>
     </div>
-
-    <!-- PINNED BOTTOM JOIN SECTION — now always visible -->
     <div class="flex-shrink-0 pt-8 border-t border-zinc-700">
       <p class="text-sm text-zinc-400 mb-3">Have a code? Join room</p>
       <div class="flex gap-3">
@@ -106,7 +107,7 @@
     </div>
   </div>
 
-  <!-- PRO SCREEN (unchanged) -->
+  <!-- PRO SCREEN -->
   <div id="screen3" class="p-6 hidden flex-1 text-center">
     <div class="text-6xl mb-6">🔓</div>
     <h2 class="text-3xl font-bold text-white">Go Pro — $4.99/mo per couple</h2>
@@ -115,7 +116,7 @@
   </div>
 </div>
 
-<!-- DETAILS MODAL (unchanged) -->
+<!-- DETAILS MODAL -->
 <div id="details-modal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-5">
   <div class="bg-zinc-900 rounded-3xl w-full max-w-xs max-h-[85dvh] overflow-hidden flex flex-col">
     <button onclick="closeDetails()" class="absolute top-6 right-6 text-4xl text-white z-10">✕</button>
@@ -134,7 +135,7 @@
 </div>
 
 <script>
-// ==================== ALL YOUR ORIGINAL + PREVIOUSLY PERFECTED CODE ====================
+// TMDB + variables
 const TMDB_READ_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlMjA0ZGQzYTU5ZWY2MzY1MzRlOTBlZGE2ZDU4NWJlNCIsIm5iZiI6MTc3MTc3MjIxMy43NTEwMDAyLCJzdWIiOiI2OTliMTkzNWJkN2E3NTBhNDk4MGVkZTciLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.AkgenA40NIZJ4jfNEGVPnxAQxtE000b7fY3g3EgF5gY';
 
 let shows = [];
@@ -191,41 +192,190 @@ function getActors(title) {
 
 function showCard() {
   const show = shows[currentIndex];
-  const cardHTML = `<img src="${show.img}" alt="${show.title}" class="w-full h-full object-cover">
+  const cardHTML = `
+    <img src="${show.img}" alt="${show.title}" class="w-full h-full object-cover">
     <div class="gradient-overlay">
       <h2 class="text-3xl font-bold leading-none">${show.title}</h2>
       <p class="text-lg text-white/90 mt-1">${show.year} • ${show.genre} • ${show.rating}</p>
       <button onclick="showDetails(); event.stopImmediatePropagation();" class="mt-6 w-full bg-white text-black py-3.5 rounded-2xl text-sm font-semibold shadow-lg active:scale-95 transition">Details</button>
-    </div>`;
+    </div>
+  `;
   document.getElementById('card').innerHTML = cardHTML;
 }
 
-function showDetails() { /* unchanged */ }
-function closeDetails() { /* unchanged */ }
+function showDetails() {
+  const show = shows[currentIndex];
+  document.getElementById('modal-title').textContent = show.title;
+  document.getElementById('modal-info').innerHTML = `${show.year} • ${show.genre} • ${show.rating}`;
+  document.getElementById('modal-desc').textContent = show.desc;
+  document.getElementById('modal-actors').innerHTML = `Cast: ${show.actors.join(", ")}`;
+  document.getElementById('modal-providers').innerHTML = `Available on: ${show.providers.join(", ")}`;
+  document.getElementById('modal-poster').innerHTML = `<img src="${show.img}" class="w-full h-full object-cover">`;
+  document.getElementById('details-modal').classList.remove('hidden');
+}
 
-// YOUR ORIGINAL SWIPE + resetCardPosition + nextCard (unchanged and perfect)
+function closeDetails() {
+  document.getElementById('details-modal').classList.add('hidden');
+}
+
+// FULL SWIPE LOGIC (your original + desktop safety)
 const card = document.getElementById('card');
-let isDragging = false; let startX = 0; let currentX = 0; let velocity = 0; let lastTime = 0;
+let isDragging = false;
+let startX = 0;
+let currentX = 0;
+let velocity = 0;
+let lastTime = 0;
 
-card.addEventListener('pointerdown', e => { /* your exact code */ });
-document.addEventListener('pointermove', e => { /* your exact code */ });
-document.addEventListener('pointerup', e => { /* your exact code */ });
+card.addEventListener('pointerdown', e => {
+  isDragging = true;
+  startX = e.clientX;
+  currentX = 0;
+  velocity = 0;
+  lastTime = Date.now();
+  card.style.transition = 'none';
+});
 
-function resetCardPosition() { /* your code */ }
-function nextCard(isLike) { /* your code */ }
+document.addEventListener('pointermove', e => {
+  if (!isDragging) return;
+  currentX = e.clientX - startX;
+  const now = Date.now();
+  velocity = (currentX - (card._lastX || 0)) / (now - lastTime + 1);
+  card._lastX = currentX;
+  lastTime = now;
+
+  const progress = Math.min(Math.abs(currentX) / 140, 1);
+  card.style.transform = `translateX(${currentX}px) rotate(${currentX / 20}deg) scale(${1 - progress * 0.05})`;
+
+  const likeO = document.getElementById('like-overlay');
+  const nopeO = document.getElementById('nope-overlay');
+  if (currentX > 0) { likeO.style.opacity = progress; nopeO.style.opacity = 0; } 
+  else { nopeO.style.opacity = progress; likeO.style.opacity = 0; }
+
+  if (Math.abs(currentX) > 160) {
+    isDragging = false;
+    const dir = currentX > 0 ? 1 : -1;
+    card.style.transition = 'transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+    card.style.transform = `translateX(${dir * 650}px) rotate(${dir * 45}deg) scale(0.7)`;
+    setTimeout(() => nextCard(dir > 0), 280);
+  }
+});
+
+document.addEventListener('pointerup', e => {
+  if (!isDragging) return;
+  isDragging = false;
+  card.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)';
+  if (Math.abs(currentX) > 100 || Math.abs(velocity) > 1.2) {
+    const dir = currentX > 0 || velocity > 0 ? 1 : -1;
+    card.style.transform = `translateX(${dir * 650}px) rotate(${dir * 45}deg) scale(0.7)`;
+    setTimeout(() => nextCard(dir > 0), 280);
+  } else {
+    resetCardPosition();
+  }
+});
+
+function resetCardPosition() {
+  card.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)';
+  card.style.transform = 'translateX(0) rotate(0deg) scale(1)';
+  document.getElementById('like-overlay').style.opacity = 0;
+  document.getElementById('nope-overlay').style.opacity = 0;
+}
+
+function nextCard(isLike) {
+  lastSwiped = shows[currentIndex];
+  if (isLike) {
+    yourLikes.push(shows[currentIndex]);
+    channel.postMessage({type: 'like', show: shows[currentIndex]});
+    if (partnerLikes.some(s => s.id === shows[currentIndex].id)) createMatch(shows[currentIndex]);
+  }
+  currentIndex = (currentIndex + 1) % shows.length;
+  showCard();
+  resetCardPosition();
+}
+
 function swipeLeft() { nextCard(false); }
 function swipeRight() { nextCard(true); }
-function undoSwipe() { /* your code */ }
-function createMatch(show) { /* your code */ }
-function renderMatches() { /* your code */ }
-function createRoom() { /* your code */ }
-function copyRoomCode() { /* your code */ }
-function shareRoomCode() { /* your code */ }
-function joinRoom() { /* your code */ }
-function showTab(n) { /* your code */ }
-function upgradeToPro() { /* your code */ }
 
-document.addEventListener('keydown', e => { /* your code */ });
+function undoSwipe() {
+  if (!lastSwiped) return alert("Nothing to undo yet");
+  currentIndex = shows.findIndex(s => s.id === lastSwiped.id);
+  if (currentIndex === -1) currentIndex = 0;
+  showCard();
+  lastSwiped = null;
+}
+
+function createMatch(show) {
+  if (matches.some(m => m.id === show.id)) return;
+  matches.push(show);
+  localStorage.setItem('duoflixMatches', JSON.stringify(matches));
+  alert(`🎉 MATCH! ${show.title} — both liked it!`);
+  renderMatches();
+}
+
+function renderMatches() {
+  const container = document.getElementById('match-list');
+  container.innerHTML = matches.map(m => `
+    <div class="bg-zinc-800 rounded-2xl overflow-hidden">
+      <img src="${m.img}" class="w-full aspect-square object-cover">
+      <p class="p-3 text-center font-medium text-white">${m.title}</p>
+    </div>
+  `).join('');
+  document.getElementById('matchCount').textContent = matches.length;
+}
+
+function createRoom() {
+  currentRoomCode = Math.floor(100000 + Math.random() * 900000).toString();
+  localStorage.setItem('currentRoomCode', currentRoomCode);
+  const display = document.getElementById('room-code-display');
+  display.classList.remove('hidden');
+  document.getElementById('room-code').textContent = currentRoomCode;
+}
+
+function copyRoomCode() {
+  navigator.clipboard.writeText(currentRoomCode).then(() => alert("✅ Code copied! Send it to your partner."));
+}
+
+function shareRoomCode() {
+  if (navigator.share) {
+    navigator.share({ title: 'Join my DuoFlix room!', text: `Watch movies with me! Room code: ${currentRoomCode}` });
+  } else {
+    alert("Copy the code above and send it to your partner ❤️");
+  }
+}
+
+function joinRoom() {
+  const code = document.getElementById('join-code').value.trim();
+  if (code.length === 6) {
+    currentRoomCode = code;
+    alert(`✅ Joined Room ${code}!\nSwiping now syncs instantly across tabs.`);
+    setTimeout(() => {
+      const demoShow = shows[Math.floor(Math.random() * shows.length)];
+      partnerLikes.push(demoShow);
+      channel.postMessage({type: 'like', show: demoShow});
+    }, 600);
+  }
+}
+
+function showTab(n) {
+  document.getElementById('screen0').style.display = n === 0 ? 'flex' : 'none';
+  document.getElementById('screen1').style.display = n === 1 ? 'block' : 'none';
+  document.getElementById('screen2').style.display = n === 2 ? 'flex' : 'none';
+  document.getElementById('screen3').style.display = n === 3 ? 'block' : 'none';
+
+  document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('tab-active'));
+  document.getElementById(`tab${n}`).classList.add('tab-active');
+
+  if (n === 1) renderMatches();
+}
+
+function upgradeToPro() {
+  alert("DuoFlix Pro – $4.99/month per couple\nUnlimited swipes for both of you ❤️");
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === "ArrowLeft") swipeLeft();
+  if (e.key === "ArrowRight") swipeRight();
+  if (e.key.toLowerCase() === "u") undoSwipe();
+});
 
 loadRealShows();
 </script>
